@@ -1,8 +1,8 @@
-# Fire Calendar
+# Embergrid
 
 ## Start the web app
 
-Double-click **Start Fire Calendar.command** or run `python3 backend/server.py` from the project folder. Then open http://127.0.0.1:8765 in a browser. Leave the server window open while using the app.
+Double-click **Start Embergrid.command** or run `python3 backend/server.py` from the project folder. Then open http://127.0.0.1:8765 in a browser. Leave the server window open while using the app.
 
 - **/** introduces the project and opens the featured Sangrur comparison.
 - **/explore** provides the India Explorer with zone, state, district, year, month, and sensor filters.

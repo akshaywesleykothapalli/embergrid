@@ -2,13 +2,13 @@ const page = document.body.dataset.page;
 const links = [["/", "Home", "home"], ["/calendar", "Harmonized calendar", "calendar"], ["/explore", "India Explorer", "explorer"], ];
 document.getElementById("siteHeader").innerHTML = `
   <header class="top"><div class="shell top-inner">
-    <a class="brand" href="/"><span aria-hidden="true">◉</span> Fire Calendar</a>
+    <a class="brand" href="/"><span aria-hidden="true">◉</span> Embergrid</a>
     <nav class="site-nav" aria-label="Main navigation">${links.map(([url, label, key]) =>
       `<a href="${url}"${page === key ? ' aria-current="page"' : ""}>${label}</a>`).join("")}</nav>
   </div></header>`;
 document.getElementById("siteFooter").innerHTML = `
   <footer class="site-footer"><div class="shell footer-inner">
-    <div><strong>Fire Calendar</strong><p>Historical satellite hotspot analysis for India.</p></div>
+    <div><strong>Embergrid</strong><p>Historical satellite hotspot analysis for India.</p></div>
     <nav aria-label="Footer navigation">
       <a href="/explore">India Explorer</a><a href="/calendar">Harmonized calendar</a>
       <a href="https://www.earthdata.nasa.gov/data/tools/firms">NASA FIRMS ↗</a>
@@ -51,6 +51,6 @@ try {
   const message = document.createElement("p");
   message.className = "panel";
   message.setAttribute("role", "alert");
-  message.textContent = "The archive could not load. Start Fire Calendar and reopen the page through its local address.";
+  message.textContent = "The archive could not load. Start Embergrid and reopen the page through its local address.";
   document.querySelector("main").prepend(message);
 }

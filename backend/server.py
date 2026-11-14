@@ -1,4 +1,4 @@
-"""Serve Fire Calendar and its local, read-only archive."""
+"""Serve Embergrid and its local, read-only archive."""
 import argparse
 import gzip
 import json
@@ -81,7 +81,7 @@ def main():
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     with ThreadingHTTPServer(("127.0.0.1", args.port), CalendarHandler) as server:
-        print(f"Fire Calendar is running at http://127.0.0.1:{server.server_port}", flush=True)
+        print(f"Embergrid is running at http://127.0.0.1:{server.server_port}", flush=True)
         try:
             server.serve_forever()
         except KeyboardInterrupt:
