@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harmonized calendar · Fire Calendar</title><link rel="stylesheet" href="/assets/style.css"><link rel="stylesheet" href="/assets/site.css?v=interactive-3"><link rel="stylesheet" href="/assets/calendar.css?v=interactive-3">
+<script type="module" src="/assets/bootstrap.js?v=interactive-3"></script></head>
+<body data-page="calendar"><div id="siteHeader"></div><main class="shell">
+<section class="intro"><div><p class="eyebrow">India district archive · NASA FIRMS</p><h1>Harmonized burning calendar</h1><p>Monthly hotspot activity on a common VIIRS grid-cell scale.</p></div></section>
+<section class="panel"><div class="calendar-filters">
+<label>State or union territory <select id="calendarState"></select></label>
+<label>District <select id="calendarDistrict" disabled></select></label>
+<button type="button" id="showDistrict" disabled>Show details</button>
+</div><p id="districtStatus" role="status">Choose a state and district, then click Show details.</p>
+<div id="districtCalendar" hidden><form id="calendarFilters" class="calendar-filters">
+<label>First month <input type="month" id="first" required></label><label>Last month <input type="month" id="last" required></label>
+<button>Apply dates</button><button type="button" id="csv">Download CSV</button><button type="button" id="svg">Download chart</button></form>
+<p id="rangeError" role="alert"></p><div id="chartWorkspace"><div class="chart-actions"><button type="button" id="chartFullscreen">⛶ Fullscreen chart</button></div><div class="chart-interaction"><div id="calendarChart" tabindex="0" role="group" aria-label="Monthly hotspot chart. Use the left and right arrow keys to inspect values." aria-describedby="monthDetail"></div><div id="chartTooltip" hidden></div></div>
+<p class="calendar-legend">Teal: observed VIIRS · Amber: MODIS estimate · Dashed line: earlier same-month median · Violet outline: above the preceding same-month range</p>
+<p id="monthDetail" aria-live="polite"></p></div><div id="calendarGrid"></div></div></section>
+<section class="panel" id="districtBenchmark" hidden><h2>Benchmark on later years</h2><p id="benchmarkMethod"></p>
+<div class="bench-scroll"><table><thead><tr><th>Year</th><th>Raw MODIS</th><th>Overall scaling</th><th>Seasonal scaling</th></tr></thead><tbody id="benchmarkRows"></tbody></table></div>
+<p>Mean absolute difference from VIIRS in occupied grid cells per month. VIIRS is the reference for agreement. Usable observation coverage remains unverified.</p></section>
+<details class="panel"><summary>Data and method</summary><p>The calendar counts each 0.025° cell once per month and sensor. The historical series uses observed VIIRS from February 2012 onward. Earlier MODIS estimates appear when the district has at least 12 months with detections from both sensors in training and the chosen adjustment improves agreement in each of the three held-out years. Older estimates use the bundled boundary release and assume the relationship transfers back in time. A violet outline marks a value above all available preceding same-month values in the last five years, with a minimum of three. This is a descriptive signal for review. The early estimates assume the sensor relationship transfers back in time.</p><p><a href="/explore">Inspect individual detections in India Explorer</a> · <a href="https://firms.modaps.eosdis.nasa.gov/download/">NASA FIRMS archive</a></p></details>
+</main><dialog id="fullscreenDialog" class="fullscreen-dialog" aria-label="Monthly hotspot chart"></dialog><div id="siteFooter"></div></body></html>

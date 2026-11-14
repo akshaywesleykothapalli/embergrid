@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fire Calendar · Punjab</title>
+<link rel="stylesheet" href="/assets/vendor/leaflet.css">
+<link rel="stylesheet" href="/assets/style.css">
+
+<link rel="stylesheet" href="/assets/site.css"><script type="module" src="/assets/bootstrap.js"></script></head>
+<body data-page="sangrur">
+<div id="siteHeader"></div>
+<main class="shell">
+  <section class="intro"><div><p class="eyebrow" id="area"></p><a class="sr-only" id="source" href="https://www.earthdata.nasa.gov/data/tools/firms"></a><h1>Burning activity</h1><p>Explore historical hotspots detected by MODIS and VIIRS.</p></div></section>
+  <div class="grid">
+    <section class="panel map-card" aria-labelledby="mapHeading">
+      <div class="heading map-heading"><h2 id="mapHeading">Hotspot map</h2>
+        <div class="map-options">
+          <label>Year <select id="season"></select></label>
+          <label id="jumpControl" hidden>Week starts in <select id="jumpMonth"></select></label>
+          <label>Time view <select id="timeView"><option value="month">Monthly</option><option value="week">Weekly</option></select></label>
+          <label>Basemap <select id="basemap"><option>Satellite</option><option>Streets</option><option>Local overview</option></select></label>
+          <label>Map view <select id="sensor"><option value="both">Both sensors</option><option>MODIS</option><option>VIIRS</option><option value="agreement">Sensor agreement</option></select></label>
+          <label>Analysis area <select id="focusArea"><option value="all">Full study area</option><option value="nw">Northwest</option><option value="ne">Northeast</option><option value="sw">Southwest</option><option value="se">Southeast</option></select></label>
+          <button id="resetMap" type="button" aria-label="Return to study area">⌖ Study area</button>
+        </div>
+      </div>
+      <div class="map-frame"><div id="map" aria-label="Interactive map of hotspot detections"></div><div id="mapDetail" role="status" hidden></div></div>
+      <div class="legend" id="pointLegend"><span><i class="dot modis"></i> MODIS</span><span><i class="dot viirs"></i> VIIRS</span><span><i class="outline"></i> Study area</span><span id="boundaryLegend" hidden><i class="outline district"></i> Sangrur district</span><span>Numbered markers group nearby detections</span></div>
+      <div class="legend" id="agreementLegend" hidden><span><i class="dot agree"></i> Both sensors</span><span><i class="dot modis"></i> MODIS only</span><span><i class="dot viirs"></i> VIIRS only</span><span>Click a cell for detection counts</span></div>
+      <section class="calendar" aria-labelledby="timeline"><div class="heading"><div><h2 id="timeline">Year timeline</h2><p>VIIRS grid cells with detections</p></div><button id="play" type="button">▶ Play year</button></div><div id="weeks"></div><p id="coverageNote">Fire-mask coverage unverified</p><p id="rainNote" hidden>Rainfall in mm · <a href="https://power.larc.nasa.gov/">NASA POWER</a></p></section>
+    </section>
+    <aside class="panel side">
+      <h2 id="periodHeading">Selected week</h2><p id="weekRange"></p><p id="focusLabel"></p>
+      <div class="week-section"><h3>Sensor comparison</h3><p>Grid cells with detections</p><div id="bars"></div></div>
+      <div class="week-section"><h3 id="historyHeading">Same week in other years</h3><p>VIIRS grid cells with detections</p><div id="history"></div><p id="baseline"></p></div>
+      <div class="week-section"><h3>Sensor agreement</h3><div id="agreementStats"></div><p>Agreement means both sensors reported a hotspot in the same cell during the selected period. The sensors can observe at different times.</p></div>
+      <div class="week-section"><h3>Observation coverage</h3>
+        <p id="coverageStatus" class="callout">Fire-mask coverage unverified</p>
+        <p>Hotspots can be missed when clouds obscure the ground or an observation is missing.</p>
+        <div id="cloudControls" hidden><label>Daily Aqua daytime cloud imagery <select id="cloudDay"></select></label><p><a id="worldview" target="_blank" rel="noopener">Open image and color legend in NASA Worldview ↗</a></p></div>
+      </div>
+      <div id="rainSummary" class="week-section" hidden></div>
+      <div class="week-section"><details><summary>Sensor adjustment tests</summary><label class="adjust"><input type="checkbox" id="adjust"> Show experimental estimate</label><p>Adjustment tests apply to October–November weekly counts for the full study area.</p><div id="validation" class="callout"></div></details></div>
+      <button id="export" type="button">↓ Download week CSV</button>
+    </aside>
+  </div>
+
+  <section class="panel evidence" aria-labelledby="evidenceTitle">
+    <div class="heading"><div><h2 id="evidenceTitle">Compare the same dates across years</h2><p id="evidencePeriod"></p></div><span class="eyebrow">NASA FIRMS</span></div>
+    <div class="evidence-grid" id="evidenceYears"></div>
+    <p class="evidence-note">Times show when the satellites recorded daytime hotspots in this area. Observation coverage remains unverified, so the comparison can’t establish why detections changed.</p>
+  </section>
+  <details class="panel" id="method"><summary>Data and method</summary><p>Hotspots are grouped into 0.025° grid cells and counted once per cell and sensor within the selected week or calendar month. The regional scaling factor is fitted separately for each test using the other available seasons, then evaluated against VIIRS on the held-out season. Point detections can miss burning because of cloud or gaps in satellite coverage. The agreement view uses the same grid and counts shared detections by cell for the selected period. The analysis-area menu filters all hotspot charts and exports to one of four grid-aligned sections of the study area. Rainfall always represents the NASA POWER estimate near Sangrur. Weekly bins align by calendar date across years. The final bin may be shorter. Rainfall is bundled for October and November in selected years.</p><p>The dashed rectangle marks the FIRMS analysis area around Sangrur. The district outline, where displayed, is a geographic reference. The 2023 observation pilot includes daily Aqua daytime cloud imagery from NASA GIBS for visual context. Fire-mask coverage remains unverified for both sensors. Cloud imagery uses UTC dates and can show gaps in retrievals. The satellite and street tiles provide geographic context. The bundled NASA overview is available as a fallback around Sangrur. Satellite zoom stops at the tested imagery limit near Sangrur. Switch to Streets for a labeled map. Hotspots use historical FIRMS coordinates for the selected week.</p><p><a href="https://firms.modaps.eosdis.nasa.gov/download/">FIRMS archive downloads</a> · <a href="https://www.earthdata.nasa.gov/data/tools/firms">NASA Earthdata FIRMS</a> · <a href="https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/">Space Apps challenge</a></p></details>
+</main>
+<div id="siteFooter"></div></body>
+</html>
