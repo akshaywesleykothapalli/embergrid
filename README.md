@@ -1,128 +1,77 @@
 # Embergrid
 
-## Start the web app
+Embergrid is an interactive archive of satellite fire detections. It lets you explore where MODIS and VIIRS detected hotspots and compare the same month across years. The project was built for the [2026 NASA Space Apps MODIS and VIIRS Hot Spots challenge](https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/).
 
-Double-click **Start Embergrid.command** or run `python3 backend/server.py` from the project folder. Then open http://127.0.0.1:8765 in a browser. Leave the server window open while using the app.
+[Open Embergrid](https://embergrid.onrender.com/) · [About the project](https://embergrid.onrender.com/about)
 
-- **/** introduces the project and opens the featured Sangrur comparison.
-- **/explore** provides the India Explorer with zone, state, district, year, month, and sensor filters.
-- **/sangrur** provides the original weekly and monthly comparison.
-- **/api/** serves the historical archive as JSON. The India Explorer requests one month at a time.
+## Explore the archive
 
-The frontend and shared site layout live in `frontend/`. The Python server and data archive live in `backend/`. By default, the server listens only on this computer. The satellite and street basemaps require an internet connection.
+| View | What you can do |
+| --- | --- |
+| [World Explorer](https://embergrid.onrender.com/global) | Explore a 3D globe, compare monthly totals across countries and subdivisions, and inspect archived hotspots in a local map. Export monthly totals or the points currently displayed. |
+| [India Explorer](https://embergrid.onrender.com/explore) | Filter the 2012–2025 NASA FIRMS archive by area, month, and sensor. Compare state and district totals, inspect individual detections, and export a CSV. |
+| [Fire Calendar](https://embergrid.onrender.com/calendar) | Compare monthly fire activity for 735 Indian districts using observations and labeled historical estimates from the 2003–2025 archive. |
+| [Sangrur Study](https://embergrid.onrender.com/sangrur) | Inspect weekly or monthly detections in the Punjab study area, view MODIS and VIIRS overlap, and see rainfall and cloud imagery for selected periods. |
 
-## Deploy Embergrid
+## How the India Fire Calendar works
 
-Use a Docker-capable web host with HTTPS. The image includes the frontend, India data, world boundaries, and Fire Harmony monthly summaries. By default it queries individual hotspots from the published [Fire Harmony v1.0 archive](https://huggingface.co/datasets/warrensaw530/fire-harmony) over HTTPS. Warren Saw's Fire Harmony dataset is licensed under CC BY 4.0 and uses NASA FIRMS data.
+1. **Count occupied cells.** Assign detections to districts and count each grid cell with at least one detection once per district, sensor, and month.
+2. **Compare calibration methods.** Use years when both sensors operated to compare raw MODIS with overall and seasonal adjustments. Choose the method with the lowest mean absolute error in the development years.
+3. **Validate historical estimates.** Show earlier MODIS-based estimates where there are at least 12 paired nonzero training months and the selected adjustment beats raw MODIS in 2023. The calendar shows observed VIIRS from February 2012 onward. January 2012 has partial Suomi NPP VIIRS coverage.
 
-Build from the project root. For a host with local archive storage, you can copy the complete `fire-harmony-v1` directory to the host and use the read-only mount shown below. Ensure the archive files and directories are readable and traversable by the container user (UID 10001). For remote archive access, omit the mount line.
+On the held-out 2024–2025 benchmark across 735 districts, mean absolute error fell from **17.22 to 10.92 occupied cells** overall, about 37%. In district-months at or below the district’s typical activity, error increased from 1.17 to 1.44. The Fire Calendar includes the benchmark by season and activity level and supports district-level export.
+
+The World Explorer uses Fire Harmony’s published NOAA-20 VIIRS scale for monthly totals. India views group dates in India Standard Time. The World Explorer uses UTC. Hotspots represent recorded thermal anomalies. Estimating fire counts, burned area, cause, or usable observation coverage requires additional evidence.
+
+## Run locally
+
+For the full app with the hosted data configuration, build and run the Docker image from the repository root.
 
 ```sh
 docker build -t embergrid .
-docker run -d --name embergrid --restart unless-stopped \
-  -p 127.0.0.1:8765:8765 \
-  --mount type=bind,source=/srv/embergrid-data,target=/data,readonly \
-  embergrid
+docker run --rm -p 127.0.0.1:8765:8765 embergrid
 ```
 
-With this example, the archive should be at `/srv/embergrid-data/fire-harmony-v1` on the host. Point the host's HTTPS reverse proxy to `127.0.0.1:8765`. On a managed Docker host, use its HTTPS ingress and set `EMBERGRID_GLOBAL_ARCHIVE` to the archive path inside the service's persistent disk. The container listens on the host-provided `PORT`, or `8765` by default.
+Open [localhost:8765](http://localhost:8765/). The image includes India data, world boundaries, and Fire Harmony monthly summaries. It reads individual world hotspot partitions from the published archive over HTTPS.
 
-Use `/api/health` for the service check. After the archive is in place, verify `/api/global/series?area=WORLD` and `/api/global/points?area=IND&year=2025&month=10` return data. Open `/explore` and `/calendar` to check the bundled India features.
-
-## Build requirements
-
-- **NASA hotspot data:** Historical NASA FIRMS standard-processing CSVs for Aqua MODIS and Suomi NPP VIIRS for the same years. The importer expects latitude, longitude, acquisition date/time, and confidence. Use the FIRMS yearly country catalog or archive export.
-- **Study area:** The starter uses a rectangular region around Sangrur in Punjab, India. District-level reporting requires a licensed district polygon and point-in-polygon filtering.
-- **Science check:** Use October–November seasons in India Standard Time, align both sensors on a common grid, and fit the regional adjustment on earlier years. Report the raw and adjusted mean absolute error for the newest season. Compare the same week in earlier seasons for historical context.
-- **Data quality:** Review coverage using the gridded fire-mask products before interpreting gaps or claiming a real change in burning activity. Point detections alone cannot establish complete observation coverage, fire count, burned area, or whether a detection was crop-residue burning.
-- **Next additions:** Expand to selectable study areas and verify observation coverage using fire masks. The current prototype covers the overlapping MODIS and VIIRS archive years. Evaluate a more stable adjustment before extending the record into the MODIS-only era.
-
-## Bundled dataset
-
-The current build includes 2012–2025 NASA FIRMS Aqua MODIS and Suomi NPP VIIRS archives for the rectangular Sangrur study area. Suomi NPP coverage starts January 20, 2012. The calendar flags partial or unavailable periods at that boundary. This archive does not establish usable observation coverage for every period. The experimental adjustment is fitted and tested on October–November weekly bins only; raw counts are the default.
-
-## Refresh the data
-
-Use Python 3 with its standard library. From this folder, run:
+For local development without Docker, run `python3 backend/server.py` from the repository root or double-click **Start Embergrid.command** on macOS. The launcher uses `.venv/bin/python` when available. The India tools use the bundled data. To run World Explorer with a local Fire Harmony archive, install the data readers with Python 3.13 and point the server at the directory containing `area_monthly.parquet`, `areas.json`, and `hotspots/`.
 
 ```sh
-python3 backend/prepare.py --modis /path/to/modis_*.csv --viirs /path/to/viirs-snpp_*.csv --years 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025
+python3.13 -m venv .venv
+.venv/bin/python -m pip install -r backend/requirements-global.txt
+EMBERGRID_GLOBAL_ARCHIVE=/path/to/fire-harmony-v1 .venv/bin/python backend/server.py
 ```
 
-This replaces `backend/data/data.js`. Use complete files for each year in both series. The app labels synthetic data as **Illustrative data** when the sample dataset is in use. Real NASA files are filtered to this study area and dates before bundling. The calendar color reflects VIIRS grid-cell counts within the selected season. The short last bin ends November 30. The regional adjustment is the ratio of summed VIIRS to summed MODIS grid-cell counts across training weeks.
+On macOS, the default local archive path is `/Volumes/EMBERGRID/embergrid-data/fire-harmony-v1`. Use `--port` to select another port. Online basemaps require internet access, and the 3D globe requires WebGL.
 
-## Sources
+## Deploy
 
-- [NASA Earthdata FIRMS](https://www.earthdata.nasa.gov/data/tools/firms) documents the official hotspot products. The bundled records are historical FIRMS exports for 2022, 2023 and 2025.
-- [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) supplies the online satellite tiles.
+The public app runs as one Docker web service on Render. The root Dockerfile starts the Python server on `0.0.0.0` using the host’s `PORT` value. Configure `/api/health` as the health check and put the service behind HTTPS. A free Render instance may take about a minute to wake up after inactivity. [Render free web services](https://render.com/docs/free#spinning-down-on-idle)
 
-- [NASA Space Apps challenge](https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/)
-- [NASA FIRMS archive](https://firms.modaps.eosdis.nasa.gov/download/) and [yearly country catalog](https://firms.modaps.eosdis.nasa.gov/data/country/yearly_summary_files.txt)
-- [NASA FIRMS caveats](https://forum.earthdata.nasa.gov/viewtopic.php?p=18047)
-- [geoBoundaries API](https://www.geoboundaries.org/api.html) for district polygons
-- [NASA POWER daily API](https://power.larc.nasa.gov/docs/services/api/temporal/daily/) for rainfall context
+For a host with a complete local Fire Harmony archive, mount its parent read-only at `/data` and make the archive readable by UID 10001. The Docker image defaults to `/data/fire-harmony-v1`. Set `EMBERGRID_GLOBAL_ARCHIVE` if you mount it elsewhere.
 
-- [Detailed challenge brief mirrored by HackAthlone](https://hackathlone.com/challenges/modis-and-viirs-hot-spots)
+Useful checks after deploy include `/about`, `/api/health`, `/api/calendar/district/0`, and `/api/global/series?area=WORLD`. To verify individual world hotspot data, request `/api/global/points?area=LKA&year=2025&month=10`.
 
-- [NASA EOSDIS GIBS](https://www.earthdata.nasa.gov/data/tools/gibs) provides the bundled NOAA-20 VIIRS true-color imagery from March 17, 2025. The fixed basemap is geographic context for every season and works offline.
+## Data and implementation
 
-## Geographic context
+- **Fire detections.** NASA FIRMS historical MODIS and VIIRS standard-processing records. The India database covers 36 states and union territories. State-assigned detections without a district match are reported separately. [NASA FIRMS](https://www.earthdata.nasa.gov/data/tools/firms) · [Historical downloads](https://firms.modaps.eosdis.nasa.gov/download/)
+- **Global archive.** Warren Saw’s Fire Harmony v1.0 data, licensed under CC BY 4.0 and derived from NASA FIRMS. The World Explorer displays up to 8,000 hotspot points per query and reports the matched count and any missing partitions. [Fire Harmony dataset](https://huggingface.co/datasets/warrensaw530/fire-harmony)
+- **Boundaries and imagery.** Natural Earth and geoBoundaries provide administrative boundaries. The maps use Esri World Imagery and NASA GIBS for geographic context. The Sangrur study uses NASA POWER rainfall estimates and 2023 cloud-fraction imagery for visual review. [Natural Earth](https://www.naturalearthdata.com/) · [geoBoundaries](https://www.geoboundaries.org/) · [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) · [NASA GIBS](https://www.earthdata.nasa.gov/data/tools/gibs) · [NASA POWER](https://power.larc.nasa.gov/docs/services/api/temporal/daily/)
+- **Code.** `frontend/` contains the HTML, CSS, JavaScript, and map assets. `backend/` serves the site and JSON archive APIs. DuckDB reads Parquet data, Shapely and H3 support spatial filtering, and Leaflet and CesiumJS render the maps.
 
-The Sangrur outline uses the geoBoundaries gbOpen IND ADM2 simplified release (CC BY 4.0). It is an overlay for geographic reference. The dashed rectangle defines the FIRMS analysis area. Rainfall is NASA POWER PRECTOTCORR at 30.25°N, 75.90°E, summed over the same calendar date bins and shown as context. These are point estimates, not district averages.
+### Rebuild selected India datasets
 
-## Sensor agreement and local analysis
+Rebuild the Sangrur dataset from complete NASA FIRMS CSV exports for Aqua MODIS and Suomi NPP VIIRS. The importer writes `backend/data/data.js`.
 
-Switch Map view to **Sensor agreement** to see cells with MODIS only, VIIRS only, or detections from both during the same week. The comparison uses a 0.025° grid. Agreement measures overlap in reported detections, with no matching by event or time of overpass. The Analysis area selector filters the map, timeline, historical comparison, and point-level CSV to the selected grid-aligned section. The rainfall strip and calibration tests use their original geographic scope.
+```sh
+python3 backend/prepare.py \
+  --modis /path/to/modis_*.csv \
+  --viirs /path/to/viirs-snpp_*.csv \
+  --years 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025
+```
 
-## Observation pilot
+To rebuild `backend/data/district-cells.json`, run `.venv/bin/python backend/index_districts.py /path/to/archives` with the original geoBoundaries ADM2 file named `districts.json` alongside the 2003–2011 India MODIS CSVs. The script uses the bundled India Explorer data for the overlapping sensor years.
 
-The 2023 season includes daily Aqua daytime cloud-fraction imagery for visual inspection. In **Observation coverage**, choose a UTC date within the selected calendar week to overlay imagery or open it in NASA Worldview. The FIRMS calendar groups hotspots by India Standard Time. Cloud imagery is supplementary and does not measure whether the active-fire algorithm had a usable view. The app marks fire-mask coverage unverified, leaves hotspot counts unchanged, and does not infer that a zero count means no burning.
+## Built by
 
-NASA's MYD14A1 science granules were located for the study area, but the catalog links point to Earthdata-protected files. A future quantitative coverage check requires the Aqua and Suomi NPP active-fire masks, matching acquisition windows, and validation before any counts are normalized.
-
-- [NASA GIBS imagery access](https://nasa-gibs.github.io/gibs-api-docs/access-basics/)
-- [NASA MYD14A1 product](https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/MYD14A1)
-
-## Weekly and monthly views
-
-Use **Time view** to switch between January–December and weekly bins. In Weekly view, use **Week starts in** to jump to a month. The original October–November bins remain aligned to the autumn comparison. Monthly FIRMS counts are recalculated from detection dates in India Standard Time and count each grid cell once per sensor per month. Monthly rainfall comes from daily NASA POWER values summed on the calendar-month boundaries. Experimental calibration applies only to October–November weekly counts for the full study area. Rainfall and cloud imagery retain their original limited date ranges.
-
-## Detection evidence and map detail
-
-The app retains original FIRMS acquisition timestamps converted to IST. The comparison panel shows the same dates across all bundled seasons, unique grid cells by sensor, shared cells, and the range of recorded detection times between 06:00 and 18:00 IST. Point popups and CSV exports include the original acquisition time. Detection times are not estimates of observation coverage.
-
-Esri satellite imagery near central Sangrur was checked at zoom levels 18 and 19. Level 18 returned imagery and level 19 returned a provider placeholder. The satellite view requests higher-resolution tiles on Retina displays and caps zoom accordingly. Streets remains a separate basemap, and the offline overview has its own lower zoom limit.
-
-## India explorer
-
-Open **India Explorer** from the landing page. Use **Sangrur comparison** in the header for the original weekly and monthly dashboard. Pick a zone, state or union territory, district, year, month and sensor. National and zone maps show state totals. State maps show district totals and can switch to individual hotspots. District maps open directly to point detail. The CSV export uses the selected filters.
-
-The archive uses one local file per month for 2012–2025. State and district assignments use geoBoundaries gbOpen polygons and geographic zone assignments defined for this app. A detection inside a state can remain unassigned to a district; the sidebar reports these rows separately. Points outside all state/UT polygons are excluded. The boundary snapshot includes 36 states/UTs and 735 district features, including 14 for Andhra Pradesh. District menus reflect that snapshot. The archive begins partway through January 2012 for Suomi NPP VIIRS. Online satellite and street basemaps require internet access.
-
-The India Explorer’s **Is this month unusual?** panel compares each sensor with up to five earlier instances of the same month for the selected area. It requires three earlier comparable values. January 2012 is partial for Suomi NPP VIIRS. The panel uses both sensors regardless of the map display filter. Its labels guide follow-up review and reflect a descriptive historical range. Observation coverage remains unverified.
-
-## Harmonized calendar
-
-Open **Harmonized calendar** at `/calendar` and choose a state and district, or open it from a selected district in India Explorer. The backend calculates the district’s historical estimates and validation scores on request from a monthly occupied-cell index. The source is the 2003–2025 NASA FIRMS archive.
-
-Observed VIIRS is shown from February 2012 onward. Earlier estimates are displayed when the adjustment beats raw MODIS in the 2023 publication gate and training contains at least 12 paired nonzero months. Raw MODIS and the benchmark remain available when estimates are withheld. The test measures agreement with VIIRS. Usable observation coverage remains unverified.
-
-To rebuild the district index, run `python3 backend/index_districts.py /path/to/archives` with Shapely installed and the original geoBoundaries ADM2 file named `districts.json` alongside the 2003–2011 FIRMS India MODIS CSVs. The legacy study-rectangle page remains accessible via its direct URL.
-
-## Global archive on external storage
-
-Open **Global archive** at `/global`. Country, continent, and world monthly values are read from Fire Harmony's published NASA FIRMS-derived dataset on the external drive. They use Fire Harmony's NOAA-20 VIIRS scale. The India calendar uses Embergrid's own occupied-cell method.
-
-The default data path is `/Volumes/EMBERGRID/embergrid-data/fire-harmony-v1`. Set `EMBERGRID_GLOBAL_ARCHIVE` to use another location. Install DuckDB for the server's Python or in the archive's sibling `python` directory. The global page queries `area_monthly.parquet`; the `hotspots/` partitions serve individual source detections. The World Explorer exports the selected range of monthly totals and offers a separate export of displayed points, with the matched count, display truncation and missing partitions included.
-
-[Fire Harmony dataset](https://huggingface.co/datasets/warrensaw530/fire-harmony) · [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/)
-
-The **World Hotspot Explorer** uses a rotatable CesiumJS globe at world scale and the same Leaflet map engine as India Explorer for local detail. Select a country and, where available, a state or province to view its monthly series. The selected country or subdivision automatically loads original point records from the USB and displays up to 8,000 per query. Point dates are UTC. The globe requires WebGL and the satellite imagery requires internet access. Country and first-level subdivision boundaries are from [Natural Earth](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/). India district outlines use the local India Explorer boundaries. Other countries request second-level outlines from [geoBoundaries gbOpen](https://www.geoboundaries.org/api.html) when available. Local divisions are assigned to the first-level area with the largest spatial overlap. Local shading and platform counts use individual archived detections for the selected month and satellite filter. Point filtering requires H3 and Shapely alongside DuckDB.
-
-
-The India calendar and World Explorer both provide year-by-month comparisons. India calendar months link to the India map with an optional IST day selection within the 2012–2025 point archive. The World Explorer uses UTC for point dates and links Indian districts to the India harmonized calendar. Daily map values are observed detections. Harmonization remains monthly.
-
-The full India benchmark panel compares frozen 2024–2025 model errors by season and activity level and exports district-level results. The district panel includes a descriptive held-out error percentile when the calibration passes. Observation coverage has not been verified with sensor fire masks.
-
-
-For a clean World Explorer setup, create the local Python environment with `python3 -m venv .venv` and install the readers with `.venv/bin/python -m pip install -r backend/requirements-global.txt`. Start Embergrid with the project launcher, which automatically selects this environment. The externally stored archive still needs to be mounted separately.
+Akshay Wesley Kothapalli · [GitHub](https://github.com/akshaywesleykothapalli) · [LinkedIn](https://linkedin.com/in/akshay-wesley-kothapalli-966738378) · [Portfolio](https://akshaywesleykothapalli.github.io/akshaywesley-portfolio/)
