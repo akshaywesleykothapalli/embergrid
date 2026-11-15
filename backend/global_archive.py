@@ -9,6 +9,13 @@ from functools import lru_cache
 
 USB = Path("/Volumes/EMBERGRID/embergrid-data")
 ROOT = Path(os.environ.get("EMBERGRID_GLOBAL_ARCHIVE", USB / "fire-harmony-v1"))
+BUNDLED = Path(__file__).with_name("data") / "fire-harmony-v1"
+REMOTE = os.environ.get("EMBERGRID_GLOBAL_ARCHIVE_URL", "").rstrip("/")
+
+
+def archive_file(name):
+    local = ROOT / name
+    return local if local.is_file() or not REMOTE else BUNDLED / name
 
 
 def load_dependencies(*modules):
@@ -28,7 +35,7 @@ def load_dependencies(*modules):
 
 
 def areas():
-    return json.loads((ROOT / "areas.json").read_text())
+    return json.loads(archive_file("areas.json").read_text())
 
 
 @lru_cache(maxsize=8)
@@ -55,7 +62,7 @@ def series(area_id):
     with duckdb.connect(config={"threads": 2}) as db:
         cursor = db.execute(
             "SELECT * FROM read_parquet(?) WHERE kind = ? AND id = ? ORDER BY yr, mo",
-            [str(ROOT / "area_monthly.parquet"), area["kind"], area["id"]],
+            [str(archive_file("area_monthly.parquet")), area["kind"], area["id"]],
         )
         columns = [column[0] for column in cursor.description]
         return {"area": area, "months": [dict(zip(columns, row)) for row in cursor.fetchall()]}
@@ -68,7 +75,7 @@ def overview(year, month):
     with duckdb.connect(config={"threads": 2}) as db:
         return dict(db.execute(
             "SELECT id, h FROM read_parquet(?) WHERE kind IN ('country', 'state') AND yr = ? AND mo = ?",
-            [str(ROOT / "area_monthly.parquet"), year, month],
+            [str(archive_file("area_monthly.parquet")), year, month],
         ).fetchall())
 
 
@@ -90,7 +97,7 @@ def point_paths(geometry):
     import h3
     from shapely.geometry import Polygon
 
-    manifest = json.loads((ROOT / "hotspots/index.json").read_text())["regions"]
+    manifest = json.loads(archive_file("hotspots/index.json").read_text())["regions"]
     # Intersect each coarse region with the country, including boundary cells.
     paths = []
     missing = 0
@@ -106,6 +113,8 @@ def point_paths(geometry):
         path = ROOT / entry["file"]
         if path.is_file():
             paths.append(str(path))
+        elif REMOTE:
+            paths.append(f"{REMOTE}/{entry['file']}")
         else:
             missing += 1
     return paths, missing
@@ -123,15 +132,25 @@ def point_batches(paths, bounds, year, month, sensor, day=0):
         start = end = date(year, month, day)
     if not paths:
         return
-    with duckdb.connect(config={"threads": 2}) as db:
-        cursor = db.execute("""
-            SELECT CAST(lon AS DOUBLE), CAST(lat AS DOUBLE), CAST(date AS VARCHAR), time, satellite, CAST(frp AS DOUBLE)
-            FROM read_parquet(?) WHERE date BETWEEN ? AND ?
-            AND lon BETWEEN ? AND ? AND lat BETWEEN ? AND ?
-            AND (? = 'all' OR satellite = ?) AND counted
-            """, [paths, start, end, west, east, south, north, sensor, sensor])
-        while batch := cursor.fetchmany(8192):
-            yield batch
+    config = {"threads": 2}
+    remote = any(path.startswith("https://") for path in paths)
+    if remote:
+        extension_dir = os.environ.get("EMBERGRID_DUCKDB_EXTENSION_DIRECTORY")
+        if extension_dir:
+            config["extension_directory"] = extension_dir
+        config["http_timeout"] = 20
+    try:
+        with duckdb.connect(config=config) as db:
+            cursor = db.execute("""
+                SELECT CAST(lon AS DOUBLE), CAST(lat AS DOUBLE), CAST(date AS VARCHAR), time, satellite, CAST(frp AS DOUBLE)
+                FROM read_parquet(?) WHERE date BETWEEN ? AND ?
+                AND lon BETWEEN ? AND ? AND lat BETWEEN ? AND ?
+                AND (? = 'all' OR satellite = ?) AND counted
+                """, [paths, start, end, west, east, south, north, sensor, sensor])
+            while batch := cursor.fetchmany(8192):
+                yield batch
+    except (duckdb.IOException, duckdb.HTTPException) as error:
+        raise OSError("Unable to read the Fire Harmony hotspot partitions") from error
 
 
 def points(area_id, year, month, sensor, geometry=None, day=0):

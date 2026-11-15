@@ -13,9 +13,9 @@ The frontend and shared site layout live in `frontend/`. The Python server and d
 
 ## Deploy Embergrid
 
-Use a Docker-capable web host with HTTPS and persistent storage for the full app. The image includes the frontend, India data, and world boundaries. The World Explorer also needs the separate `fire-harmony-v1` directory from the external drive, including `area_monthly.parquet`, `areas.json`, and the complete `hotspots/` directory. Allocate at least 10 GB for this archive.
+Use a Docker-capable web host with HTTPS. The image includes the frontend, India data, world boundaries, and Fire Harmony monthly summaries. By default it queries individual hotspots from the published [Fire Harmony v1.0 archive](https://huggingface.co/datasets/warrensaw530/fire-harmony) over HTTPS. Warren Saw's Fire Harmony dataset is licensed under CC BY 4.0 and uses NASA FIRMS data.
 
-Build from the project root. Copy the archive to the host, then mount its parent into the container read-only. Ensure the archive files and directories are readable and traversable by the container user (UID 10001).
+Build from the project root. For a host with local archive storage, you can copy the complete `fire-harmony-v1` directory to the host and use the read-only mount shown below. Ensure the archive files and directories are readable and traversable by the container user (UID 10001). For remote archive access, omit the mount line.
 
 ```sh
 docker build -t embergrid .
