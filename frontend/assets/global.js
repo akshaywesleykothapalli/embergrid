@@ -464,7 +464,7 @@
       updateMap();
       loadDistrictTotals();
     } catch {
-      if (id === areaRequest) status.textContent = "Global data is unavailable. Connect the EMBERGRID USB and reload this page.";
+      if (id === areaRequest) status.textContent = "Global data is unavailable. Reload this page to try again.";
     }
   }
 
@@ -691,7 +691,7 @@
       pointStatus.textContent = number.format(points.length) + " of " + number.format(result.total) + " archived detections shown" +
         (day.value ? " · " + year.value + "-" + String(month.value).padStart(2, "0") + "-" + day.value.padStart(2, "0") + " UTC" : "") +
         (result.truncated ? " · display limit reached" : "") +
-        (result.missing ? " · " + result.missing + " regional files unavailable on USB" : "");
+        (result.missing ? " · " + result.missing + " regional archive files unavailable" : "");
     } catch {
       if (!controller.signal.aborted) pointStatus.textContent = "Hotspot files or their reader are unavailable.";
     }
@@ -729,7 +729,7 @@
     }
     restyle();
   }).catch(() => {
-    if (area.disabled) status.textContent = "Connect the EMBERGRID USB and reload to open the global archive.";
+    if (area.disabled) status.textContent = "The global archive is unavailable. Reload this page to try again.";
     else details.textContent += " · Country outlines unavailable.";
   });
 })();
