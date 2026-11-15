@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About · Embergrid</title>
+  <meta name="description" content="The idea, methods, data sources, and people behind Embergrid's satellite fire archive.">
+  <link rel="stylesheet" href="/assets/style.css?v=black-1">
+  <link rel="stylesheet" href="/assets/site.css?v=black-1">
+  <link rel="stylesheet" href="/assets/embergrid-theme.css?v=archive-1">
+  <link rel="stylesheet" href="/assets/ridgeline-footer.css?v=type-1">
+  <link rel="stylesheet" href="/assets/about.css">
+  <link rel="icon" href="/assets/embergrid-globe.png" type="image/png">
+  <script type="module" src="/assets/bootstrap.js?v=about-1"></script>
+</head>
+<body data-page="about">
+  <div class="page-workspace">
+    <div id="siteHeader"></div>
+    <main class="shell about-shell">
+      <section class="about-hero" aria-labelledby="about-title">
+        <div>
+          <p class="eyebrow">NASA Space Apps Challenge 2026</p>
+          <h1 id="about-title">About Embergrid</h1>
+          <p>Embergrid is an interactive archive for exploring where satellites detected fire activity and comparing the same season across years.</p>
+        </div>
+        <img src="/assets/embergrid-globe.png" alt="" width="128" height="128">
+      </section>
+
+      <div class="about-layout">
+        <div class="about-story">
+          <section aria-labelledby="idea">
+            <h2 id="idea">The project idea</h2>
+            <p>MODIS and VIIRS can record different numbers of hotspots over the same area. Their sensors differ in resolution, sensitivity, and observation schedules. Embergrid explores how to compare older MODIS records with newer VIIRS observations so researchers can put an unusually active month in historical context.</p>
+          </section>
+          <section aria-labelledby="method">
+            <h2 id="method">How the fire calendar works</h2>
+            <ol class="about-method">
+              <li><strong>Count occupied grid cells.</strong> Embergrid assigns NASA FIRMS detections to Indian districts. For each district, sensor, and month, it counts each grid cell with at least one detection once.</li>
+              <li><strong>Test the adjustment.</strong> Using years when both sensors operated, Embergrid tests whether adjusting MODIS improves district-level agreement with VIIRS. A separate validation year determines whether each district’s estimates can be shown.</li>
+              <li><strong>Show observations and label estimates.</strong> The calendar displays observed VIIRS counts where available and labels earlier MODIS-based estimates for districts that passed validation.</li>
+            </ol>
+            <div class="about-result">
+              <strong>17.22 → 10.92</strong>
+              <p>Mean absolute error in occupied cells on the 2024–2025 benchmark across 735 Indian districts. Average error fell by about 37% overall and increased in lower-activity months.</p>
+            </div>
+            <a class="about-link" href="/calendar">Open the fire calendar <span aria-hidden="true">↗</span></a>
+          </section>
+          <section aria-labelledby="explorers">
+            <h2 id="explorers">Explore the observations</h2>
+            <p>The India Explorer maps individual satellite detections. The World Explorer combines monthly summaries from the published Fire Harmony dataset with archived detection points. Its global totals use Fire Harmony’s NOAA-20 VIIRS scale. The India calendar uses Embergrid’s district-level occupied-cell method.</p>
+            <p>Hotspot detections indicate where a sensor recorded a thermal anomaly. Burned area, fire cause, and usable satellite observation coverage require additional evidence.</p>
+            <div class="about-links">
+              <a class="about-link" href="/explore">India Explorer <span aria-hidden="true">↗</span></a>
+              <a class="about-link" href="/global">World Explorer <span aria-hidden="true">↗</span></a>
+            </div>
+          </section>
+        </div>
+
+        <aside class="about-aside" aria-label="Project credits">
+          <section class="panel about-card" aria-labelledby="built-by">
+            <h2 class="eyebrow" id="built-by">Built by</h2>
+            <p class="about-name">Akshay Wesley Kothapalli</p>
+            <ul class="about-directory">
+              <li><a href="https://github.com/akshaywesleykothapalli"><span>GitHub <small>@akshaywesleykothapalli</small></span><span aria-hidden="true">↗</span></a></li>
+              <li><a href="https://linkedin.com/in/akshay-wesley-kothapalli-966738378">LinkedIn <span aria-hidden="true">↗</span></a></li>
+              <li><a href="https://akshaywesleykothapalli.github.io/akshaywesley-portfolio/">Portfolio <span aria-hidden="true">↗</span></a></li>
+            </ul>
+          </section>
+          <section class="panel about-card" aria-labelledby="sources">
+            <h2 id="sources">Data and source code</h2>
+            <ul class="about-directory">
+              <li><a href="https://www.earthdata.nasa.gov/data/tools/firms">NASA FIRMS <span aria-hidden="true">↗</span></a></li>
+              <li><a href="https://huggingface.co/datasets/warrensaw530/fire-harmony">Fire Harmony <span aria-hidden="true">↗</span></a></li>
+              <li><a href="https://github.com/akshaywesleykothapalli/embergrid">Embergrid repository <span aria-hidden="true">↗</span></a></li>
+              <li><a href="https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/">Challenge brief <span aria-hidden="true">↗</span></a></li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <div id="siteFooter"></div>
+</body>
+</html>

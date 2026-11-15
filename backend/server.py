@@ -18,7 +18,8 @@ ROOT = Path(__file__).resolve().parent
 FRONTEND = ROOT.parent / "frontend"
 DATA = ROOT / "data"
 PAGES = {"/": "/index.html", "/explore": "/explorer.html", "/sangrur": "/sangrur.html",
-         "/global": "/global.html", "/india.html": "/explorer.html", "/calendar": "/calendar.html"}
+         "/global": "/global.html", "/india.html": "/explorer.html", "/calendar": "/calendar.html",
+         "/about": "/about.html"}
 DATASETS = {
     "/api/global/boundaries": "world-boundaries.json",
     "/api/global/globe": "world-globe.json",

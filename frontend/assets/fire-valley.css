@@ -7,7 +7,7 @@ body[data-page="home"] { --valley-cream:#f5efe2; }
 [data-page="home"] .site-nav {gap:clamp(.55rem,2.6vw,2.5rem)}
 [data-page="home"] .site-nav a {color:var(--valley-cream);font:600 .72rem/1.2 Manrope,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase}
 [data-page="home"] .site-nav a[aria-current] {display:none}
-[data-page="home"] .site-nav a:last-child {background:var(--valley-cream);color:#1b1513;padding:.85rem 1.1rem;border-radius:99px}
+[data-page="home"] .site-nav a[href="/calendar"] {background:var(--valley-cream);color:#1b1513;padding:.85rem 1.1rem;border-radius:99px}
 [data-page="home"] .site-nav a:hover {text-decoration:underline;text-underline-offset:.25em}
 .home-main {padding:0}
 .fire-valley {position:relative;isolation:isolate;min-height:max(39rem,100svh);display:grid;place-items:center;overflow:hidden;background:#100e13;color:var(--valley-cream);font-family:Manrope,system-ui,sans-serif}
@@ -26,8 +26,8 @@ body[data-page="home"] { --valley-cream:#f5efe2; }
 .valley-corner a:hover,.valley-corner button:hover {text-decoration:underline}
 @media(max-width:720px) {
   [data-page="home"] .top-inner {flex-direction:row;align-items:center;padding:1rem}
-  [data-page="home"] .site-nav a:not(:last-child) {display:none}
-  [data-page="home"] .site-nav a:last-child {font-size:.62rem}
+  [data-page="home"] .site-nav a:not([href="/calendar"]):not([href="/about"]) {display:none}
+  [data-page="home"] .site-nav a[href="/calendar"] {font-size:.62rem}
   .valley-copy h1 {font-size:clamp(4rem,15vw,6rem)}
   .valley-corner {left:1rem;justify-content:center}
 }

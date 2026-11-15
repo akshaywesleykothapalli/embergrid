@@ -5,6 +5,7 @@ const links = [
   ["/global", "World explorer", "global"],
   ["/explore", "India explorer", "explorer"],
   ["/calendar", "Fire calendar", "calendar"],
+  ["/about", "About", "about"],
 ];
 document.getElementById("siteHeader").innerHTML = `
   <header class="top"><div class="shell top-inner">
