@@ -2,6 +2,7 @@ const byId = id => document.getElementById(id);
 const {states, districts} = window.indiaBoundaries;
 const [zone, state, district, year, month, instrument, base] =
   ["zone", "state", "district", "year", "month", "instrument", "base"].map(byId);
+const day = byId("day");
 const metric = byId("metric");
 const displayMode = byId("displayMode");
 const monthName = new Intl.DateTimeFormat("en", {month: "long", timeZone: "UTC"});
@@ -110,6 +111,10 @@ function timeLabel(minutes) {
 
 async function refresh(refit) {
   const id = ++request;
+  const previousDay = day.value;
+  const days = new Date(Number(year.value), Number(month.value), 0).getDate();
+  selectOptions(day, [["All days", ""], ...Array.from({length: days}, (_, i) => [i + 1, i + 1])]);
+  day.value = Number(previousDay) <= days ? previousDay : "";
   const key = year.value + "-" + month.value;
   const statesInZone = new Set(availableStates().map(f => f.properties.id));
   const selected = district.value ? districts[Number(district.value)] : state.value ? states[Number(state.value)] : null;
@@ -120,7 +125,7 @@ async function refresh(refit) {
   const showPoints = Boolean(district.value || (state.value && displayMode.value === "points"));
   const calendarLink = document.getElementById("districtCalendarLink");
   calendarLink.hidden = !district.value;
-  if (district.value) calendarLink.href = "/calendar?district=" + encodeURIComponent(district.value);
+  if (district.value) calendarLink.href = "/calendar?district=" + encodeURIComponent(district.value) + "&month=" + key;
   byId("mapTitle").textContent = scope;
   renderReview({
     key, scope,
@@ -129,7 +134,7 @@ async function refresh(refit) {
     zone: zone.value,
     month: month.selectedOptions[0].textContent
   });
-  byId("selection").textContent = scope + " · " + month.selectedOptions[0].textContent + " " + year.value;
+  byId("selection").textContent = scope + " · " + month.selectedOptions[0].textContent + " " + year.value + (day.value ? " · Day " + day.value + " IST" : "");
   byId("mapHelp").textContent = showPoints ? "Click a hotspot for its sensor, date, and time." :
     state.value ? "Select a district to see individual detections." : "Select a state to explore its districts.";
   byId("breakdownTitle").textContent = state.value ? "District detections" : "State and union territory detections";
@@ -148,7 +153,8 @@ async function refresh(refit) {
     return;
   }
   if (id !== request) return;
-  displayed = rows.filter(([, , , , s, a, d]) => statesInZone.has(a) &&
+  displayed = rows.filter(([, , localDay, , s, a, d]) => statesInZone.has(a) &&
+    (!day.value || Number(day.value) === localDay) &&
     (!state.value || Number(state.value) === a) && (!district.value || Number(district.value) === d) &&
     (!instrument.value || Number(instrument.value) === s));
   const totals = aggregate(displayed);
@@ -221,7 +227,7 @@ async function refresh(refit) {
 zone.onchange = () => { updateStates(); refresh(true); };
 state.onchange = () => { updateDistricts(); refresh(true); };
 district.onchange = () => refresh(true);
-year.onchange = month.onchange = instrument.onchange = displayMode.onchange = metric.onchange = () => refresh(false);
+year.onchange = month.onchange = day.onchange = instrument.onchange = displayMode.onchange = metric.onchange = () => refresh(false);
 byId("fit").onclick = fit;
 byId("download").onclick = () => {
   const key = year.value + "-" + month.value;
@@ -248,6 +254,11 @@ if (requestedState) {
 for (const control of [year, month]) {
   const value = query.get(control.id);
   if ([...control.options].some(option => option.value === value)) control.value = value;
+}
+const requestedDay = Number(query.get("day"));
+if (Number.isInteger(requestedDay) && requestedDay >= 1 && requestedDay <= 31) {
+  day.add(new Option(requestedDay, requestedDay));
+  day.value = requestedDay;
 }
 refresh(true);
 

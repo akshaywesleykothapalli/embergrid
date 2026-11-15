@@ -9,7 +9,25 @@ Double-click **Start Embergrid.command** or run `python3 backend/server.py` from
 - **/sangrur** provides the original weekly and monthly comparison.
 - **/api/** serves the historical archive as JSON. The India Explorer requests one month at a time.
 
-The frontend and shared site layout live in `frontend/`. The Python server and data archive live in `backend/`. The server listens only on this computer. The satellite and street basemaps require an internet connection.
+The frontend and shared site layout live in `frontend/`. The Python server and data archive live in `backend/`. By default, the server listens only on this computer. The satellite and street basemaps require an internet connection.
+
+## Deploy Embergrid
+
+Use a Docker-capable web host with HTTPS and persistent storage for the full app. The image includes the frontend, India data, and world boundaries. The World Explorer also needs the separate `fire-harmony-v1` directory from the external drive, including `area_monthly.parquet`, `areas.json`, and the complete `hotspots/` directory. Allocate at least 10 GB for this archive.
+
+Build from the project root. Copy the archive to the host, then mount its parent into the container read-only. Ensure the archive files and directories are readable and traversable by the container user (UID 10001).
+
+```sh
+docker build -t embergrid .
+docker run -d --name embergrid --restart unless-stopped \
+  -p 127.0.0.1:8765:8765 \
+  --mount type=bind,source=/srv/embergrid-data,target=/data,readonly \
+  embergrid
+```
+
+With this example, the archive should be at `/srv/embergrid-data/fire-harmony-v1` on the host. Point the host's HTTPS reverse proxy to `127.0.0.1:8765`. On a managed Docker host, use its HTTPS ingress and set `EMBERGRID_GLOBAL_ARCHIVE` to the archive path inside the service's persistent disk. The container listens on the host-provided `PORT`, or `8765` by default.
+
+Use `/api/health` for the service check. After the archive is in place, verify `/api/global/series?area=WORLD` and `/api/global/points?area=IND&year=2025&month=10` return data. Open `/explore` and `/calendar` to check the bundled India features.
 
 ## Build requirements
 
@@ -87,6 +105,24 @@ The India Explorer’s **Is this month unusual?** panel compares each sensor wit
 
 Open **Harmonized calendar** at `/calendar` and choose a state and district, or open it from a selected district in India Explorer. The backend calculates the district’s historical estimates and validation scores on request from a monthly occupied-cell index. The source is the 2003–2025 NASA FIRMS archive.
 
-Observed VIIRS is shown from February 2012 onward. Earlier estimates are displayed when the adjustment beats raw MODIS in each of 2023–2025 and training contains at least 12 paired nonzero months. Raw MODIS and the benchmark remain available when estimates are withheld. The test measures agreement with VIIRS. Usable observation coverage remains unverified.
+Observed VIIRS is shown from February 2012 onward. Earlier estimates are displayed when the adjustment beats raw MODIS in the 2023 publication gate and training contains at least 12 paired nonzero months. Raw MODIS and the benchmark remain available when estimates are withheld. The test measures agreement with VIIRS. Usable observation coverage remains unverified.
 
 To rebuild the district index, run `python3 backend/index_districts.py /path/to/archives` with Shapely installed and the original geoBoundaries ADM2 file named `districts.json` alongside the 2003–2011 FIRMS India MODIS CSVs. The legacy study-rectangle page remains accessible via its direct URL.
+
+## Global archive on external storage
+
+Open **Global archive** at `/global`. Country, continent, and world monthly values are read from Fire Harmony's published NASA FIRMS-derived dataset on the external drive. They use Fire Harmony's NOAA-20 VIIRS scale. The India calendar uses Embergrid's own occupied-cell method.
+
+The default data path is `/Volumes/EMBERGRID/embergrid-data/fire-harmony-v1`. Set `EMBERGRID_GLOBAL_ARCHIVE` to use another location. Install DuckDB for the server's Python or in the archive's sibling `python` directory. The global page queries `area_monthly.parquet`; the `hotspots/` partitions serve individual source detections. The World Explorer exports the selected range of monthly totals and offers a separate export of displayed points, with the matched count, display truncation and missing partitions included.
+
+[Fire Harmony dataset](https://huggingface.co/datasets/warrensaw530/fire-harmony) · [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/)
+
+The **World Hotspot Explorer** uses a rotatable CesiumJS globe at world scale and the same Leaflet map engine as India Explorer for local detail. Select a country and, where available, a state or province to view its monthly series. The selected country or subdivision automatically loads original point records from the USB and displays up to 8,000 per query. Point dates are UTC. The globe requires WebGL and the satellite imagery requires internet access. Country and first-level subdivision boundaries are from [Natural Earth](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/). India district outlines use the local India Explorer boundaries. Other countries request second-level outlines from [geoBoundaries gbOpen](https://www.geoboundaries.org/api.html) when available. Local divisions are assigned to the first-level area with the largest spatial overlap. Local shading and platform counts use individual archived detections for the selected month and satellite filter. Point filtering requires H3 and Shapely alongside DuckDB.
+
+
+The India calendar and World Explorer both provide year-by-month comparisons. India calendar months link to the India map with an optional IST day selection within the 2012–2025 point archive. The World Explorer uses UTC for point dates and links Indian districts to the India harmonized calendar. Daily map values are observed detections. Harmonization remains monthly.
+
+The full India benchmark panel compares frozen 2024–2025 model errors by season and activity level and exports district-level results. The district panel includes a descriptive held-out error percentile when the calibration passes. Observation coverage has not been verified with sensor fire masks.
+
+
+For a clean World Explorer setup, create the local Python environment with `python3 -m venv .venv` and install the readers with `.venv/bin/python -m pip install -r backend/requirements-global.txt`. Start Embergrid with the project launcher, which automatically selects this environment. The externally stored archive still needs to be mounted separately.

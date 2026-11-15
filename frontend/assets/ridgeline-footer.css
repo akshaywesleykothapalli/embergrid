@@ -1,0 +1,96 @@
+/* Rounded layout adapted from Hirael Footer 02 (MIT, Mohammad Shehadeh). */
+.rdf-root {
+  --rdf-paper: #0b0b0b;
+  --rdf-ink: #f5efe2;
+  --rdf-muted: #c6c6c6;
+  --rdf-line: #343434;
+  --rdf-accent: #a9cd91;
+  --rdf-sans: var(--type-body, system-ui), sans-serif;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border-radius: 28px 28px 0 0;
+  border-top: 1px solid var(--rdf-line);
+  background: var(--rdf-paper);
+  color: var(--rdf-ink);
+  font-family: var(--rdf-sans);
+}
+.rdf-root::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 150px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0, #282828 0%, transparent 72%);
+}
+.rdf-frame {
+  position: relative;
+  width: min(100%, 1480px);
+  box-sizing: border-box;
+  margin-inline: auto;
+  padding: clamp(2.25rem, 5vw, 4.5rem) clamp(1.25rem, 5vw, 4.5rem) 0;
+}
+.rdf-top { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start; }
+.rdf-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem; }
+.rdf-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: .35rem;
+  color: var(--rdf-ink);
+  font: 500 2.1rem/1 "Barlow Condensed", sans-serif;
+  text-decoration: none;
+}
+.rdf-col h3 { margin: 0 0 .75rem; font-size: .875rem; font-weight: 700; color: var(--rdf-ink); }
+.rdf-col ul { display: grid; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.rdf-link { color: var(--rdf-muted); font-size: .875rem; text-decoration: none; }
+.rdf-link:hover, .rdf-logo:hover { color: var(--rdf-accent); }
+.rdf-link:focus-visible, .rdf-logo:focus-visible { outline: 2px solid var(--rdf-accent); outline-offset: 4px; }
+.rdf-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 1.25rem;
+  margin-top: 2.25rem;
+  padding-block: 1rem .5rem;
+  border-top: 1px solid var(--rdf-line);
+}
+.rdf-bar .rdf-link { font-size: .75rem; }
+.rdf-in .rdf-r { animation: rdf-enter .5s cubic-bezier(.22,1,.36,1) var(--d) both; }
+@keyframes rdf-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+.rdf-scene { position: relative; height: clamp(135px, 19vw, 270px); }
+.rdf-scene canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.rdf-alt {
+  position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; opacity: 0;
+  transition: opacity .35s ease; font: 500 10px/1 var(--rdf-sans); letter-spacing: .08em; color: var(--rdf-ink);
+}
+.rdf-alt i {
+  position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--rdf-paper); box-shadow: 0 0 0 1.5px var(--rdf-ink);
+}
+.rdf-alt b { position: absolute; left: -.5px; bottom: 6px; width: 1px; height: 26px; background: var(--rdf-ink); opacity: .55; }
+.rdf-alt span {
+  position: absolute; left: 0; bottom: 34px; transform: translateX(-50%); white-space: nowrap; padding: 5px 7px 4px;
+  border-radius: 5px; background: color-mix(in srgb, var(--rdf-paper) 88%, transparent); box-shadow: 0 0 0 1px var(--rdf-line);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+
+@media (max-width: 760px) {
+  .rdf-top { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+  .rdf-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rdf-in .rdf-r { animation: none; }
+  .rdf-alt { transition: none; }
+}

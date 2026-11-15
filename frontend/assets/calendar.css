@@ -1,7 +1,17 @@
-.calendar-filters{display:flex;flex-wrap:wrap;align-items:end;gap:.65rem;margin-bottom:1rem}.calendar-filters label{display:grid;gap:.25rem;font-size:.8rem}.calendar-filters input{font:inherit;padding:.36rem;border-radius:6px;background:#24342a;border:1px solid #465d4d;color:var(--fg)}#calendarChart svg{display:block;width:100%;height:auto}#calendarGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:.4rem;margin-top:.75rem;max-height:330px;overflow:auto}#calendarGrid button{display:grid;justify-items:start;font-size:.72rem}#calendarGrid strong{font-size:.94rem}#calendarGrid .estimated{color:#ffbf82}#calendarGrid .above{border-color:#d7bcff}#calendarGrid [aria-pressed=true]{outline:2px solid #fff;outline-offset:-2px}.calendar-legend,#monthDetail,#rangeError{font-size:.82rem;margin-top:.5rem}#rangeError{color:#ffbf82}.bench-scroll{overflow:auto}table{border-collapse:collapse;width:100%;margin:.65rem 0;text-align:left}th,td{padding:.45rem;border-bottom:1px solid var(--line);white-space:nowrap}
-.chart-interaction{position:relative}#calendarChart{cursor:crosshair}#calendarChart:focus-visible{outline:2px solid var(--mint);outline-offset:3px}#chartTooltip{position:absolute;top:2.65rem;right:1rem;max-width:min(42ch,85%);padding:.5rem .75rem;border:1px solid #597466;border-radius:9px;background:#172720f5;color:#f2f7ef;box-shadow:0 5px 18px #0005;font-size:.78rem;pointer-events:none}
+.calendar-filters{display:flex;flex-wrap:wrap;align-items:end;gap:.65rem;margin-bottom:1rem}.calendar-filters label{display:grid;gap:.25rem;font-size:.8rem}.calendar-filters input{font:inherit;padding:.36rem;border-radius:6px;background:#262626;border:1px solid #4d4d4d;color:var(--fg)}#calendarChart svg{display:block;width:100%;height:auto}#calendarGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:.4rem;margin-top:.75rem;max-height:330px;overflow:auto}#calendarGrid button{display:grid;justify-items:start;font-size:.72rem}#calendarGrid strong{font-size:.94rem}#calendarGrid .estimated{color:#ffbf82}#calendarGrid .above{border-color:#d7bcff}#calendarGrid [aria-pressed=true]{outline:2px solid #fff;outline-offset:-2px}.calendar-legend,#monthDetail,#rangeError{font-size:.82rem;margin-top:.5rem}#rangeError{color:#ffbf82}.bench-scroll{overflow:auto}table{border-collapse:collapse;width:100%;margin:.65rem 0;text-align:left}th,td{padding:.45rem;border-bottom:1px solid var(--line);white-space:nowrap}
+.chart-interaction{position:relative}#calendarChart{cursor:crosshair}#calendarChart:focus-visible{outline:2px solid var(--mint);outline-offset:3px}#chartTooltip{position:absolute;top:2.65rem;right:1rem;max-width:min(42ch,85%);padding:.5rem .75rem;border:1px solid #696969;border-radius:9px;background:#191919f5;color:#f2f7ef;box-shadow:0 5px 18px #0005;font-size:.78rem;pointer-events:none}
 .chart-actions{display:flex;justify-content:flex-end;margin-bottom:.5rem}
 #chartTooltip{right:auto;top:18%;width:max-content;max-width:min(42ch,48%);transform:translateX(8px)}
 #chartTooltip.align-left{transform:translateX(calc(-100% - 8px))}
 #chartWorkspace.map-expanded{height:100%;overflow:auto;padding:clamp(.75rem,3vw,2rem)}
 #chartWorkspace.map-expanded #calendarChart svg{max-height:75dvh}
+
+#calendarGrid{display:block;max-height:28rem}
+.month-matrix{font-variant-numeric:tabular-nums}
+.month-matrix th,.month-matrix td{padding:.3rem;text-align:right}
+.month-matrix thead{position:sticky;top:0;background:#1a1a1a;z-index:1}
+.month-matrix button,#calendarGrid .month-matrix button{display:block;text-align:right;width:100%;font-size:.78rem}
+.month-matrix button strong{display:block}
+.month-matrix button[aria-pressed=true]{outline:2px solid var(--mint);outline-offset:-2px}
+#observationControls{align-items:center;margin-top:1rem}
+#observationMap{color:var(--mint)}

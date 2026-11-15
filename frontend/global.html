@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/assets/vendor/leaflet.css"><link rel="stylesheet" href="/assets/vendor/cesium/Widgets/widgets.css"><link rel="stylesheet" href="/assets/india.css?v=black-1"><title>World Hotspot Explorer · Embergrid</title><link rel="stylesheet" href="/assets/style.css?v=black-1"><link rel="stylesheet" href="/assets/site.css?v=black-1"><link rel="stylesheet" href="/assets/calendar.css?v=black-1">
+<script type="module" src="/assets/bootstrap.js?v=grid-1"></script><link rel="stylesheet" href="/assets/embergrid-theme.css?v=archive-1">
+<link rel="stylesheet" href="/assets/ridgeline-footer.css?v=type-1"><link rel="icon" href="/assets/embergrid-globe.png" type="image/png"></head>
+<body data-page="global"><div class="page-workspace"><div id="siteHeader"></div><main class="shell">
+<section class="intro"><div><p class="eyebrow">NASA FIRMS and Fire Harmony</p><h1>World Hotspot Explorer</h1><p>Explore satellite fire detections worldwide. Start with a country, then zoom in to states, provinces, and local divisions where available.</p></div></section>
+<section class="panel explorer-filter-panel" aria-labelledby="explorer-filter-title">
+  <h2 id="explorer-filter-title">Filter detections</h2>
+  <div class="explorer-filter-groups">
+    <fieldset class="explorer-filter-group">
+      <legend>Location</legend>
+      <div class="explorer-filter-fields">
+        <label>Country or territory <select id="globalArea" disabled></select></label>
+        <label>State or province <select id="globalState" disabled><option value="">All subdivisions</option></select></label>
+        <label><span id="districtLabel">Local division</span> <select id="globalDistrict" disabled><option value="">All local divisions</option></select></label>
+      </div>
+    </fieldset>
+    <fieldset class="explorer-filter-group">
+      <legend>Date</legend>
+      <div class="explorer-filter-fields">
+        <label>Year <select id="globalYear" disabled></select></label>
+        <label>Month <select id="globalMonth"></select></label>
+        <label>Detection day (UTC) <select id="globalDay" disabled></select></label>
+      </div>
+    </fieldset>
+    <fieldset class="explorer-filter-group">
+      <legend>Satellite</legend>
+      <div class="explorer-filter-fields">
+        <label>Platform <select id="globalSensor"><option value="all">All platforms</option><option>Terra</option><option>Aqua</option><option value="Suomi-NPP">Suomi NPP</option><option>NOAA-20</option><option>NOAA-21</option></select></label>
+      </div>
+    </fieldset>
+  </div>
+</section>
+<section class="panel world-map-panel" aria-label="World hotspot map">
+<div id="worldWorkspace"><div id="worldControls" role="group" aria-label="Map navigation"><button type="button" id="worldZoomIn" aria-label="Zoom in">+</button><button type="button" id="worldZoomOut" aria-label="Zoom out">−</button><button type="button" id="globalFit">Fit area</button><button type="button" id="worldReset">World view</button><button type="button" id="worldMode">Flat map</button><button type="button" id="worldFullscreen">Fullscreen map</button></div><div class="map-frame"><div id="worldGlobe" aria-label="Interactive three-dimensional Earth"></div><div id="worldFlat" aria-label="Detailed satellite map" hidden></div></div><p id="worldTooltip" hidden></p><div id="worldSummary"><p id="worldDetails" role="status"></p><p id="globalPointStatus" role="status"></p></div></div><p id="globalStatus" role="status">Loading archive…</p>
+<div class="calendar-filters" id="globalExports">
+<label>Summary start <input type="month" id="globalFrom"></label>
+<label>Summary end <input type="month" id="globalTo"></label>
+<button type="button" id="globalSummaryCsv" disabled>Download monthly summary CSV</button>
+<button type="button" id="globalPointsCsv" disabled>Download displayed detections CSV</button>
+</div><p id="globalExportStatus" role="status"></p><p id="districtStatus" role="status"></p><p><a id="worldIndiaCalendar" hidden>Open this district’s harmonized calendar</a></p><details id="worldMatrixPanel"><summary>Compare harmonized monthly activity across years</summary><div class="bench-scroll" id="worldMatrix"></div></details><div class="bench-scroll" id="worldMonthly"><table><caption>Monthly hotspot counts</caption><thead><tr><th scope="col">Month</th><th scope="col">Harmonized hotspots</th><th scope="col">Terra MODIS</th><th scope="col">Aqua MODIS</th><th scope="col">Suomi NPP VIIRS</th><th scope="col">NOAA-20 VIIRS</th><th scope="col">NOAA-21 VIIRS</th></tr></thead><tbody id="globalMonths"></tbody></table></div>
+<p>Counts are based on archived satellite detections. The global series uses a different method and unit from Embergrid’s India district calendar.</p>
+<p><a href="https://huggingface.co/datasets/warrensaw530/fire-harmony">Fire Harmony data and methods</a> · <a href="https://firms.modaps.eosdis.nasa.gov/">NASA FIRMS</a></p></section>
+</main></div><dialog id="fullscreenDialog" class="fullscreen-dialog"></dialog><div id="siteFooter"></div></body></html>

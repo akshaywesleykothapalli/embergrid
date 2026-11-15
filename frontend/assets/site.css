@@ -1,7 +1,7 @@
 .site-nav,.footer-inner nav,.hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:.7rem 1.2rem}
 .site-nav a,.footer-inner nav a{color:var(--muted);text-decoration:none;font-size:.85rem}
 .site-nav a[aria-current],.site-nav a:hover,.footer-inner nav a:hover{color:var(--mint)}
-.site-footer{border-top:1px solid var(--line);margin-top:2rem;background:#121b16}
+.site-footer{border-top:1px solid var(--line);margin-top:2rem;background:#141414}
 .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:1.5rem;padding-block:1.7rem}
 .footer-inner p{font-size:.8rem;margin-top:.2rem}
 .landing{padding-block:clamp(2rem,6vw,6rem) 2rem}
@@ -12,7 +12,7 @@
 .primary-action{display:inline-block;padding:.7rem 1rem;border-radius:8px;background:var(--mint);color:#13251d;font-weight:750;text-decoration:none}
 .hero-image{margin:0;position:relative;overflow:hidden;border-radius:16px;border:1px solid var(--line)}
 .hero-image img{width:100%;display:block;aspect-ratio:1.3;object-fit:cover}
-.hero-image figcaption{position:absolute;bottom:0;left:0;right:0;background:#101a14e0;padding:.5rem .75rem;font-size:.75rem}
+.hero-image figcaption{position:absolute;bottom:0;left:0;right:0;background:#101010e0;padding:.5rem .75rem;font-size:.75rem}
 .archive-facts{margin:2rem 0;display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;border-block:1px solid var(--line);padding:1.15rem 0}
 .archive-facts strong,.archive-facts span{display:block}.archive-facts strong{font-size:1.3rem}.archive-facts span{color:var(--muted);font-size:.85rem}
 .landing-use{max-width:65ch}.landing-use h2{font-size:1.45rem}.landing-use p{margin:.55rem 0}
@@ -20,5 +20,5 @@
 
 [hidden]{display:none!important}
 body.workspace-expanded{overflow:hidden}
-.fullscreen-dialog{position:fixed;inset:0;box-sizing:border-box;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#101914;color:var(--fg);overflow:hidden}
-.fullscreen-dialog::backdrop{background:#101914}
+.fullscreen-dialog{position:fixed;inset:0;box-sizing:border-box;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#101010;color:var(--fg);overflow:hidden}
+.fullscreen-dialog::backdrop{background:#101010}

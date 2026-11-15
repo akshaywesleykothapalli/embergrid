@@ -4,11 +4,12 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Embergrid · Punjab</title>
 <link rel="stylesheet" href="/assets/vendor/leaflet.css">
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/style.css?v=black-1">
 
-<link rel="stylesheet" href="/assets/site.css"><script type="module" src="/assets/bootstrap.js"></script></head>
+<link rel="stylesheet" href="/assets/site.css?v=black-1"><script type="module" src="/assets/bootstrap.js?v=grid-1"></script><link rel="stylesheet" href="/assets/embergrid-theme.css?v=archive-1">
+<link rel="stylesheet" href="/assets/ridgeline-footer.css?v=type-1"><link rel="icon" href="/assets/embergrid-globe.png" type="image/png"></head>
 <body data-page="sangrur">
-<div id="siteHeader"></div>
+<div class="page-workspace"><div id="siteHeader"></div>
 <main class="shell">
   <section class="intro"><div><p class="eyebrow" id="area"></p><a class="sr-only" id="source" href="https://www.earthdata.nasa.gov/data/tools/firms"></a><h1>Burning activity</h1><p>Explore historical hotspots detected by MODIS and VIIRS.</p></div></section>
   <div class="grid">
@@ -51,6 +52,6 @@
     <p class="evidence-note">Times show when the satellites recorded daytime hotspots in this area. Observation coverage remains unverified, so the comparison can’t establish why detections changed.</p>
   </section>
   <details class="panel" id="method"><summary>Data and method</summary><p>Hotspots are grouped into 0.025° grid cells and counted once per cell and sensor within the selected week or calendar month. The regional scaling factor is fitted separately for each test using the other available seasons, then evaluated against VIIRS on the held-out season. Point detections can miss burning because of cloud or gaps in satellite coverage. The agreement view uses the same grid and counts shared detections by cell for the selected period. The analysis-area menu filters all hotspot charts and exports to one of four grid-aligned sections of the study area. Rainfall always represents the NASA POWER estimate near Sangrur. Weekly bins align by calendar date across years. The final bin may be shorter. Rainfall is bundled for October and November in selected years.</p><p>The dashed rectangle marks the FIRMS analysis area around Sangrur. The district outline, where displayed, is a geographic reference. The 2023 observation pilot includes daily Aqua daytime cloud imagery from NASA GIBS for visual context. Fire-mask coverage remains unverified for both sensors. Cloud imagery uses UTC dates and can show gaps in retrievals. The satellite and street tiles provide geographic context. The bundled NASA overview is available as a fallback around Sangrur. Satellite zoom stops at the tested imagery limit near Sangrur. Switch to Streets for a labeled map. Hotspots use historical FIRMS coordinates for the selected week.</p><p><a href="https://firms.modaps.eosdis.nasa.gov/download/">FIRMS archive downloads</a> · <a href="https://www.earthdata.nasa.gov/data/tools/firms">NASA Earthdata FIRMS</a> · <a href="https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/">Space Apps challenge</a></p></details>
-</main>
+</main></div>
 <div id="siteFooter"></div></body>
 </html>

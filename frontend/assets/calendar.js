@@ -1,11 +1,20 @@
 const {states, districts} = window.indiaBoundaries;
 let months = [];
 let districtLabel = "";
+let monthButtons = [];
+let selectedMonth = "";
+const params = new URLSearchParams(location.search);
 const el = id => document.getElementById(id);
 const format = new Intl.NumberFormat("en-IN", {maximumFractionDigits: 1});
 const methodName = {raw: "Raw MODIS", global: "Overall scaling", seasonal: "Seasonal scaling"};
 let visible = [];
 let chart = "";
+let exportRange = "";
+const currentRange = () => first.value + "/" + last.value;
+const canExport = () => visible.length > 0 && exportRange === currentRange();
+function syncExports() {
+  el("csv").disabled = el("svg").disabled = !canExport();
+}
 const first = el("first");
 const last = el("last");
 const state = el("calendarState");
@@ -26,6 +35,8 @@ function selectionChanged() {
   confirmedDistrict = "";
   visible = [];
   chart = "";
+  exportRange = "";
+  syncExports();
   el("districtCalendar").hidden = true;
   el("districtBenchmark").hidden = true;
   showDistrict.disabled = !district.value;
@@ -35,6 +46,8 @@ function selectionChanged() {
 }
 async function loadDistrict() {
   const id = ++request;
+  exportRange = "";
+  syncExports();
   el("districtCalendar").hidden = true;
   el("districtBenchmark").hidden = true;
   if (!district.value) {
@@ -52,7 +65,7 @@ async function loadDistrict() {
     confirmedDistrict = selectedId;
     months = result.months;
     districtLabel = result.district + ", " + result.state;
-    el("districtStatus").textContent = districtLabel + " · Calculated from historical NASA FIRMS observations";
+    el("districtStatus").textContent = districtLabel + " · Historical NASA FIRMS archive through " + months.at(-1).month;
     for (const input of [first, last]) {
       input.min = months[0].month;
       input.max = months.at(-1).month;
@@ -60,9 +73,11 @@ async function loadDistrict() {
     first.value ||= first.min;
     last.value ||= last.max;
     el("benchmarkMethod").textContent = methodName[result.method] +
-      " selected on 2016–2022 rolling tests and frozen before evaluating 2023–2025. " +
+      " selected on 2016–2022 rolling tests. Publication gate uses 2023. The table reports separate retrospective results for 2024–2025. " +
       result.pairedMonths + " training months had detections from both sensors. " +
-      (result.validated ? "The adjustment passed the district validation rule." :
+      (result.validated ? "The adjustment passed the district validation rule. In 90% of held-out months, " +
+        "absolute error was at most " + format.format(result.holdoutError90) + " occupied cells (rounded). " +
+        "This describes the test years. Uncertainty in earlier years may differ." :
         "The district did not pass the validation rule. Earlier MODIS counts are available in month details and CSV.");
     el("benchmarkRows").innerHTML = result.evaluation.map(row =>
       "<tr>" + [row.year, row.raw, row.global, row.seasonal].map(value => "<td>" + value + "</td>").join("") + "</tr>"
@@ -92,7 +107,7 @@ function describe(row) {
     " · Raw MODIS " + format.format(row.modis) +
     " · Observed VIIRS " + (row.viirs === null ? "unavailable" : format.format(row.viirs)) +
     (row.baseline === null ? " · Limited earlier history" : " · Earlier same-month median " + format.format(row.baseline)) +
-    (row.above ? " · Above the earlier range" : "");
+    (row.above ? " · Above the earlier range" : "") + (row.coverage_note ? " · " + row.coverage_note : "");
 }
 
 let inspected = 0;
@@ -128,7 +143,7 @@ chartElement.onblur = hideInspection;
 chartElement.onclick = event => {
   const index = targetIndex(event);
   if (index >= 0) {
-    select(visible[index], el("calendarGrid").children[index]);
+    select(visible[index], monthButtons[index]);
     inspect(index);
   }
 };
@@ -138,7 +153,7 @@ chartElement.onkeydown = event => {
   const index = event.key === "Home" ? 0 : event.key === "End" ? visible.length - 1 :
     Math.max(0, Math.min(visible.length - 1, inspected + (event.key === "ArrowLeft" ? -1 : 1)));
   inspect(index);
-  select(visible[index], el("calendarGrid").children[index]);
+  select(visible[index], monthButtons[index]);
 };
 
 function select(row, button) {
@@ -146,17 +161,36 @@ function select(row, button) {
   if (old) old.setAttribute("aria-pressed", "false");
   button.setAttribute("aria-pressed", "true");
   el("monthDetail").textContent = describe(row);
+  if (selectedMonth !== row.month) el("observationDay").value = "";
+  selectedMonth = row.month;
+  const [year, month] = row.month.split("-");
+  el("observationDay").min = row.month + "-01";
+  el("observationDay").max = row.month + "-" + new Date(Number(year), Number(month), 0).getDate();
+  linkObservations();
 }
 
 function render() {
   if (!confirmedDistrict || confirmedDistrict !== district.value) return;
   const filtered = months.filter(row => row.month >= first.value && row.month <= last.value);
-  if (first.value > last.value || !filtered.length) {
+  if (!first.validity.valid || !last.validity.valid || first.value > last.value || !filtered.length) {
+    visible = [];
+    exportRange = "";
+    chart = "";
+    chartElement.replaceChildren();
+    el("calendarGrid").replaceChildren();
+    el("monthDetail").textContent = "";
+    el("observationControls").hidden = true;
+    el("observationStatus").textContent = "";
+    hideInspection();
+    syncExports();
     el("rangeError").textContent = "Choose an ordered date range within the archive.";
     return;
   }
   el("rangeError").textContent = "";
   visible = filtered;
+  exportRange = currentRange();
+  el("observationControls").hidden = false;
+  syncExports();
   hideInspection();
   inspected = visible.length - 1;
   const max = Math.max(1, ...visible.flatMap(row => [row.value, row.baseline]));
@@ -209,8 +243,12 @@ function render() {
     button.onclick = () => select(row, button);
     return button;
   });
-  el("calendarGrid").replaceChildren(...buttons);
-  select(visible.at(-1), buttons.at(-1));
+  monthButtons = buttons;
+  renderMonthMatrix(el("calendarGrid"), visible, row => row.month, (_, index) => buttons[index]);
+  const preferred = params.get("month");
+  const requestedIndex = visible.findIndex(row => row.month === (selectedMonth || preferred));
+  const index = requestedIndex < 0 ? visible.length - 1 : requestedIndex;
+  select(visible[index], buttons[index]);
 }
 
 function download(filename, content, type) {
@@ -221,18 +259,100 @@ function download(filename, content, type) {
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 el("calendarFilters").onsubmit = event => { event.preventDefault(); render(); };
-el("csv").onclick = () => download("district-harmonized.csv",
-  ["district,month,harmonized_cells,source,modis_cells,viirs_cells,historical_median,above_range",
-    ...visible.map(row => ['"' + districtLabel.replaceAll('"', '""') + '"', row.month, row.value, row.source, row.modis, row.viirs, row.baseline, row.above].join(","))].join("\n"), "text/csv");
-el("svg").onclick = () => download("district-harmonized.svg", chart, "image/svg+xml");
+for (const input of [first, last]) input.addEventListener("input", syncExports);
+el("csv").onclick = () => {
+  if (!canExport()) return;
+  const area = '"' + districtLabel.replaceAll('"', '""') + '"';
+  download("district-harmonized.csv",
+    ["district,month,harmonized_cells,source,modis_cells,viirs_cells,historical_median,above_range,first_month,last_month,unit,modis_platform,viirs_platform,timezone,coverage_note",
+      ...visible.map(row => [area, row.month, row.value, row.source, row.modis, row.viirs,
+        row.baseline, row.above, visible[0].month, visible.at(-1).month,
+        "occupied 0.025 degree grid cells per month", "Aqua", "Suomi NPP", "Asia/Kolkata", row.coverage_note || ""].join(","))].join("\n"), "text/csv");
+};
+el("svg").onclick = () => {
+  if (canExport() && chart) download("district-harmonized.svg", chart, "image/svg+xml");
+};
 
-const requested = new URLSearchParams(location.search).get("district");
+const requested = params.get("district");
 const selected = districts.find(feature => String(feature.properties.id) === requested);
 if (selected) {
   state.value = selected.properties.state;
   state.onchange();
   district.value = selected.properties.id;
   selectionChanged();
+  if (params.has("month")) loadDistrict();
 }
 
+function linkObservations() {
+  const [year, month] = selectedMonth.split("-");
+  const selectedDate = el("observationDay");
+  const day = selectedDate.validity.valid && selectedDate.value ? selectedDate.value.slice(-2) : "";
+  const available = year >= "2012" && year <= "2025";
+  const link = el("observationMap");
+  link.hidden = !available;
+  el("observationStatus").textContent = available ?
+    "Open the archive map for original detections in " + (day ? selectedDate.value : selectedMonth) + ". Day-level totals use IST." :
+    "The map’s point-level archive covers 2012–2025. The earlier MODIS record is available here as monthly aggregates.";
+  if (available) {
+    const url = new URLSearchParams({state: state.selectedOptions[0].textContent,
+      district: district.selectedOptions[0].textContent, year, month});
+    if (day) url.set("day", day);
+    link.href = "/explore?" + url;
+  }
+}
+el("observationDay").onchange = linkObservations;
+el("clearObservationDay").onclick = () => { el("observationDay").value = ""; linkObservations(); };
+
 setupFullscreen(el("chartWorkspace"), el("chartFullscreen"), "chart", hideInspection);
+
+el("fullBenchmark").ontoggle = async () => {
+  const section = el("fullBenchmark");
+  if (!section.open || section.dataset.loaded) return;
+  section.dataset.loaded = "true";
+  const status = el("benchmarkStatus");
+  status.textContent = "Calculating held-out results across all districts…";
+  try {
+    const response = await fetch("/api/calendar/benchmark");
+    if (!response.ok) throw new Error("Benchmark unavailable");
+    const {districts, groups, transition} = await response.json();
+    const passed = districts.filter(row => row.validated).length;
+    status.textContent = passed + " of " + districts.length +
+      " districts passed. Earlier estimates are withheld in " + (districts.length - passed) +
+      " districts. Errors below compare frozen 2024–2025 predictions with observed VIIRS. " +
+      "Observation coverage remains unverified. These errors describe benchmark performance.";
+    const table = document.createElement("table");
+    table.createCaption().textContent = "Mean absolute error in monthly occupied cells, including withheld models";
+    const header = table.createTHead().insertRow();
+    for (const label of ["Test group", "District-months", "Raw MODIS", "Selected method"]) {
+      const cell = document.createElement("th");
+      cell.scope = "col";
+      cell.textContent = label;
+      header.append(cell);
+    }
+    const body = table.createTBody();
+    for (const {name, months, raw, adjusted} of groups) {
+      const row = body.insertRow();
+      for (const value of [name, format.format(months), raw, adjusted]) row.insertCell().textContent = value;
+    }
+    const seam = document.createElement("p");
+    seam.textContent = "Simulated January 2019 handoff. Mean absolute error in the December-to-January change, " +
+      "relative to observed VIIRS, using models trained through 2016. " +
+      Object.entries(transition || {}).map(([method, error]) =>
+        methodName[method] + " " + (error == null ? "unavailable" : format.format(error)) + " cells").join(" · ");
+    el("benchmarkSummary").replaceChildren(table, seam);
+    const button = el("benchmarkCsv");
+    button.disabled = false;
+    button.onclick = () => {
+      const columns = ["district", "state", "method", "passed", "paired_months", "median_absolute_error",
+        "test_year", "raw_mae", "overall_mae", "seasonal_mae"];
+      const csv = value => '"' + String(value).replaceAll('"', '""') + '"';
+      const rows = districts.flatMap(row => row.evaluation.map(test =>
+        [row.district, row.state, row.method, row.validated, row.pairedMonths, row.medianAbsoluteError,
+          test.year, test.raw, test.global, test.seasonal].map(csv).join(",")));
+      download("embergrid-district-benchmark.csv", [columns.join(","), ...rows].join("\n"), "text/csv");
+    };
+  } catch {
+    delete section.dataset.loaded;
+    status.textContent = "The benchmark could not load. Reopen this panel to retry.";
+  }
+};

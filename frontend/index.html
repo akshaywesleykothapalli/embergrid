@@ -3,35 +3,53 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Embergrid · Historical hotspot analysis for India</title>
-<link rel="stylesheet" href="/assets/style.css">
-<link rel="stylesheet" href="/assets/site.css">
-<script type="module" src="/assets/bootstrap.js"></script>
-</head>
+<title>Embergrid · Satellite fire activity</title>
+<meta name="description" content="Explore satellite fire detections and compare historical hotspot activity from MODIS and VIIRS.">
+<link rel="stylesheet" href="/assets/style.css?v=black-1">
+<link rel="stylesheet" href="/assets/site.css?v=black-1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/assets/fire-valley.css?v=forest6">
+<script type="module" src="/assets/fire-valley.js?v=forest34"></script>
+<script type="module" src="/assets/bootstrap.js?v=grid-1"></script>
+<link rel="stylesheet" href="/assets/embergrid-theme.css?v=archive-1">
+<link rel="stylesheet" href="/assets/ridgeline-footer.css?v=type-1"><link rel="icon" href="/assets/embergrid-globe.png" type="image/png"></head>
 <body data-page="home">
 <div id="siteHeader"></div>
-<main class="shell landing">
-  <section class="hero">
-    <div class="hero-copy">
-      <p class="eyebrow">NASA FIRMS · India · 2012–2025</p>
-      <h1>See how hotspot activity changes across India</h1>
-      <p>Explore satellite detections by district and month. Compare each sensor with its own history to find periods worth a closer look.</p>
-      <div class="hero-actions"><a class="primary-action" href="/calendar">Open harmonized calendar →</a><a href="/explore">Explore India</a></div>
+<main class="home-main">
+  <div class="valley-journey">
+  <section class="fire-valley" aria-labelledby="fire-heading">
+    <div class="valley-scene" aria-hidden="true">
+      <canvas id="valleyCanvas"></canvas>
     </div>
-    <figure class="hero-image">
-      <img src="/assets/punjab.jpg" alt="Satellite view of towns and agricultural land in Punjab">
-      <figcaption>Punjab · NASA EOSDIS GIBS</figcaption>
-    </figure>
+    <div class="valley-copy">
+      <h1 id="fire-heading">Fire activity from orbit</h1>
+      <p>Explore where satellites detected fire activity and compare how it changes from season to season.</p>
+      <a class="valley-arrow" href="/global">Open the world map <svg aria-hidden="true" viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10h11m-4.5-4.5L15 10l-4.5 4.5"/></svg></a>
+      <p class="valley-scroll" hidden>Scroll to follow the valley</p>
+    </div>
+    <div class="valley-corner">
+      <a href="#archive">Skip to archive <span aria-hidden="true">↓</span></a>
+      <button type="button" id="valleyMotion" aria-pressed="false" hidden>Pause motion</button>
+    </div>
   </section>
-  <section class="archive-facts" aria-label="Archive at a glance">
-    <div><strong>6.69 million</strong><span>retained satellite detections</span></div>
-    <div><strong>168 months</strong><span>January 2012–December 2025</span></div>
-    <div><strong>36</strong><span>states and union territories</span></div>
-  </section>
-  <section class="landing-use">
-    <h2>Compare a district with its own history</h2>
-    <p>Choose a district to see its monthly hotspot record, which values are estimated, and how the adjustment performed on later years.</p>
-    <a href="/calendar">Choose a district →</a>
+  </div>
+  <section class="shell landing archive-section" id="archive" aria-labelledby="archive-title">
+    <div class="archive-intro">
+      <div>
+        <p class="eyebrow">India fire archive</p>
+        <h2 id="archive-title">Fire activity by district</h2>
+      </div>
+      <div class="archive-description">
+        <p>Compare the same month across years to see when fire activity typically peaks and which seasons stand out. The calendar labels estimates used to bring MODIS and VIIRS onto a common scale.</p>
+        <a class="archive-action" href="/calendar">Open the fire calendar <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <dl class="archive-facts">
+      <div><dt>Satellite detections</dt><dd>6.69 million</dd></div>
+      <div><dt>Archive coverage</dt><dd>168 months <small>January 2012 to December 2025</small></dd></div>
+      <div><dt>States and union territories</dt><dd>36</dd></div>
+    </dl>
   </section>
 </main>
 <div id="siteFooter"></div>
