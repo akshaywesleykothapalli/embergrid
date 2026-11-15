@@ -10,7 +10,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 COPY backend/requirements-global.txt backend/
 RUN pip install --no-cache-dir -r backend/requirements-global.txt
-RUN python -c 'import duckdb, os; duckdb.connect(config={"extension_directory": os.environ["EMBERGRID_DUCKDB_EXTENSION_DIRECTORY"]}).execute("INSTALL httpfs")'
+COPY backend/install_httpfs.py backend/
+RUN python backend/install_httpfs.py
 COPY backend/ backend/
 COPY frontend/ frontend/
 
