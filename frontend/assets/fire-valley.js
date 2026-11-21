@@ -1,6 +1,6 @@
 import * as T from "./vendor/three.module.min.js";
-import {createSpecimen, reduceSpecimen} from "./valley-specimens.js?v=13";
-import {createFinish} from "./valley-finish.js?v=2";
+import {createSpecimen, reduceSpecimen} from "./valley-specimens.js?v=15";
+import {createFinish} from "./valley-finish.js?v=4";
 
 const journey = document.querySelector(".valley-journey");
 const hero = journey.querySelector(".fire-valley");
@@ -453,7 +453,7 @@ function combustion(scene, time, hover, pointer) {
 
 function start() {
   let renderer;
-  try { renderer = new T.WebGLRenderer({canvas, antialias: true}); } catch { return; }
+  try { renderer = new T.WebGLRenderer({canvas, antialias: true, powerPreference: "high-performance"}); } catch { return; }
   const finish = createFinish(renderer);
   const scene = new T.Scene();
   scene.background = new T.Color("#82929b");
@@ -470,10 +470,20 @@ function start() {
   const camera = new T.PerspectiveCamera(58, 1, .3, 600);
   const aim = new T.Vector3(); const mouse = new T.Vector2(4, 4);
   let previous = 0, frame = 0, progress = 0, paused = preference.matches, visible = true, holding = false;
-  let pixelRatio = Math.min(devicePixelRatio, 1.25);
+  const pixelRatio = Math.min(devicePixelRatio, 1.5);
   let frameCount = 0, frameTotal = 0;
+  let scrollTarget = 0, travel = 1, journeyTop = 0;
   const measure = new URLSearchParams(location.search).has("hero-fps");
+  if (measure) renderer.info.autoReset = false;
+  function updateScroll() {
+    scrollTarget = T.MathUtils.clamp((scrollY - journeyTop) / travel, 0, 1);
+    if (paused) {
+      progress = scrollTarget;
+      if (!frame && visible && !document.hidden) frame = requestAnimationFrame(draw);
+    }
+  }
   function draw(now) {
+    if (measure) renderer.info.reset();
     const lastFrame = previous;
     frame = 0; const delta = previous ? Math.min(.05, (now - previous) / 1000) : 0; previous = now;
     if (!paused) {
@@ -481,19 +491,16 @@ function start() {
         frameCount++;
         frameTotal += (now - lastFrame) / 1000;
         if (frameCount >= 75) {
-          if (measure) canvas.dataset.fps = (frameCount / frameTotal).toFixed(1);
-          if (frameTotal / frameCount > .020 && pixelRatio > .75) {
-            pixelRatio = Math.max(.75, pixelRatio * .85);
-            renderer.setPixelRatio(pixelRatio);
+          if (measure) {
+            canvas.dataset.fps = (frameCount / frameTotal).toFixed(1);
+            canvas.dataset.pixelRatio = pixelRatio.toFixed(2);
           }
           frameCount = 0;
           frameTotal = 0;
         }
       }
       time.value += delta; const ease = 1 - Math.exp(-delta * 6);
-      const distance = Math.max(1, journey.offsetHeight - hero.offsetHeight);
-      const target = T.MathUtils.clamp(-journey.getBoundingClientRect().top / distance, 0, 1);
-      if (!holding) progress = T.MathUtils.lerp(progress, target, ease);
+      if (!holding) progress = T.MathUtils.lerp(progress, scrollTarget, ease);
       hover.value = T.MathUtils.lerp(hover.value, Number(holding), ease);
       pointer.value.lerp(mouse, ease);
     }
@@ -509,21 +516,30 @@ function start() {
     sky.position.copy(camera.position);
     if (finish) finish(scene, camera, time.value);
     else renderer.render(scene, camera);
-    if (!paused && visible) frame = requestAnimationFrame(draw);
+    if (measure) {
+      canvas.dataset.triangles = String(renderer.info.render.triangles);
+      canvas.dataset.drawCalls = String(renderer.info.render.calls);
+    }
+    if (!paused && visible && !document.hidden) frame = requestAnimationFrame(draw);
   }
   function refresh() {
     cancelAnimationFrame(frame); frame = 0; previous = 0;
     motion.textContent = paused ? "Play motion" : "Pause motion"; motion.setAttribute("aria-pressed", String(paused));
-    if (visible) frame = requestAnimationFrame(draw);
+    if (visible && !document.hidden) frame = requestAnimationFrame(draw);
   }
   journey.classList.add("is-3d"); hero.querySelector(".valley-scroll").hidden = false; motion.hidden = false;
   new ResizeObserver(() => {
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(hero.clientWidth, hero.clientHeight, false);
     camera.aspect = hero.clientWidth / hero.clientHeight; camera.updateProjectionMatrix();
+    travel = Math.max(1, journey.offsetHeight - hero.offsetHeight);
+    journeyTop = journey.getBoundingClientRect().top + scrollY;
+    updateScroll();
     if (paused || !frame) refresh();
   }).observe(hero);
   new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; refresh(); }).observe(hero);
+  addEventListener("scroll", updateScroll, {passive: true});
+  document.addEventListener("visibilitychange", refresh);
   motion.onclick = () => { paused = !paused; refresh(); };
   preference.addEventListener("change", () => { paused = preference.matches; refresh(); });
   hero.onpointermove = event => {

@@ -69,21 +69,6 @@
   height: 100%;
   image-rendering: pixelated;
 }
-.rdf-alt {
-  position: absolute; left: 0; top: 0; z-index: 2; pointer-events: none; opacity: 0;
-  transition: opacity .35s ease; font: 500 10px/1 var(--rdf-sans); letter-spacing: .08em; color: var(--rdf-ink);
-}
-.rdf-alt i {
-  position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%;
-  background: var(--rdf-paper); box-shadow: 0 0 0 1.5px var(--rdf-ink);
-}
-.rdf-alt b { position: absolute; left: -.5px; bottom: 6px; width: 1px; height: 26px; background: var(--rdf-ink); opacity: .55; }
-.rdf-alt span {
-  position: absolute; left: 0; bottom: 34px; transform: translateX(-50%); white-space: nowrap; padding: 5px 7px 4px;
-  border-radius: 5px; background: color-mix(in srgb, var(--rdf-paper) 88%, transparent); box-shadow: 0 0 0 1px var(--rdf-line);
-  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
-}
-
 @media (max-width: 760px) {
   .rdf-top { grid-template-columns: 1fr; }
 }
@@ -92,5 +77,4 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .rdf-in .rdf-r { animation: none; }
-  .rdf-alt { transition: none; }
 }

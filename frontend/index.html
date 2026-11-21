@@ -10,10 +10,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/assets/fire-valley.css?v=sticky-1">
-<script type="module" src="/assets/fire-valley.js?v=forest38"></script>
-<script type="module" src="/assets/bootstrap.js?v=about-1"></script>
-<link rel="stylesheet" href="/assets/embergrid-theme.css?v=pill-1">
-<link rel="stylesheet" href="/assets/ridgeline-footer.css?v=type-1"><link rel="icon" href="/assets/embergrid-globe.png" type="image/png"></head>
+<script type="module" src="/assets/fire-valley.js?v=sharp-1"></script>
+<script type="module" src="/assets/archive-stats.js"></script>
+<script type="module" src="/assets/bootstrap.js?v=footer-1"></script>
+<link rel="stylesheet" href="/assets/embergrid-theme.css?v=context-1">
+<link rel="stylesheet" href="/assets/ridgeline-footer.css?v=ambient-1"><link rel="icon" href="/assets/embergrid-globe.png" type="image/png"></head>
 <body data-page="home">
 <div id="siteHeader"></div>
 <main class="home-main">
@@ -46,10 +47,38 @@
       </div>
     </div>
     <dl class="archive-facts">
-      <div><dt>Satellite detections</dt><dd>6.69 million</dd></div>
-      <div><dt>Archive coverage</dt><dd>168 months <small>January 2012 to December 2025</small></dd></div>
-      <div><dt>States and union territories</dt><dd>36</dd></div>
+      <div><dt>Satellite detections</dt><dd><span class="stat-number" data-value="6.69">6.69</span><span class="stat-unit">million</span></dd></div>
+      <div><dt>Archive coverage</dt><dd><span class="stat-number" data-value="168">168</span><span class="stat-unit">months</span><small>January 2012 to December 2025</small></dd></div>
+      <div><dt>States and union territories</dt><dd><span class="stat-number" data-value="36">36</span></dd></div>
     </dl>
+  </section>
+  <section class="shell archive-guide" aria-labelledby="guide-title">
+    <div class="guide-heading">
+      <p class="eyebrow">Explore the record</p>
+      <h2 id="guide-title">Put a season in perspective.</h2>
+      <p>Follow a place through time, then look closer at the observations behind the pattern.</p>
+    </div>
+    <div class="guide-grid">
+      <article>
+        <h3>Find your place</h3>
+        <p>Start with the world map or explore India by state and district. Choose a month and sensor to see where hotspots were recorded.</p>
+        <a href="/global">Explore the world <span aria-hidden="true">↗</span></a>
+      </article>
+      <article>
+        <h3>Compare the seasons</h3>
+        <p>See the same month across years in the district calendar. Observed VIIRS values and labeled MODIS estimates help connect the historical record.</p>
+        <a href="/calendar">Compare in the calendar <span aria-hidden="true">↗</span></a>
+      </article>
+      <article>
+        <h3>Inspect the evidence</h3>
+        <p>Open individual detections on the India map and export the selected records. Use the source observations to investigate a month that stands out.</p>
+        <a href="/explore">Open the India map <span aria-hidden="true">↗</span></a>
+      </article>
+    </div>
+    <div class="guide-context">
+      <p>A hotspot is a satellite observation of a thermal anomaly. Fire cause, burned area, and gaps in observation coverage need additional evidence.</p>
+      <a href="/about">Read about the methods <span aria-hidden="true">↗</span></a>
+    </div>
   </section>
 </main>
 <div id="siteFooter"></div>

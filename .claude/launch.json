@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {"name": "embergrid", "runtimeExecutable": "python3", "runtimeArgs": ["backend/server.py"], "port": 8765}
+  ]
+}

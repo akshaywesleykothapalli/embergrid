@@ -4,7 +4,7 @@ import * as T from "./vendor/three.module.min.js";
 // blooms through a small blur pyramid, and one last pass tone maps, grades, vignettes and adds grain.
 const EXPOSURE = 1.2;   // Overall brightness after tone mapping.
 const BLOOM = .9;       // How strongly fire light spills into the air around it.
-const LEVELS = 5;       // Blur pyramid depth; each level halves the size, so 5 reaches 1/32 of the screen.
+const LEVELS = 4;       // Four levels preserve the fire glow with fewer full-screen passes.
 
 const vertexShader = `
   varying vec2 p;
