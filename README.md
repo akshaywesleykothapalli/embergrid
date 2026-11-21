@@ -57,7 +57,24 @@ Useful checks after deploy include `/about`, `/api/health`, `/api/calendar/distr
 - **Fire detections.** NASA FIRMS historical MODIS and VIIRS standard-processing records. The India database covers 36 states and union territories. State-assigned detections without a district match are reported separately. [NASA FIRMS](https://www.earthdata.nasa.gov/data/tools/firms) · [Historical downloads](https://firms.modaps.eosdis.nasa.gov/download/)
 - **Global archive.** Warren Saw’s Fire Harmony v1.0 data, licensed under CC BY 4.0 and derived from NASA FIRMS. The World Explorer displays up to 8,000 hotspot points per query and reports the matched count and any missing partitions. [Fire Harmony dataset](https://huggingface.co/datasets/warrensaw530/fire-harmony)
 - **Boundaries and imagery.** Natural Earth and geoBoundaries provide administrative boundaries. The maps use Esri World Imagery and NASA GIBS for geographic context. The Sangrur study uses NASA POWER rainfall estimates and 2023 cloud-fraction imagery for visual review. [Natural Earth](https://www.naturalearthdata.com/) · [geoBoundaries](https://www.geoboundaries.org/) · [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) · [NASA GIBS](https://www.earthdata.nasa.gov/data/tools/gibs) · [NASA POWER](https://power.larc.nasa.gov/docs/services/api/temporal/daily/)
-- **Code.** `frontend/` contains the HTML, CSS, JavaScript, and map assets. `backend/` serves the site and JSON archive APIs. DuckDB reads Parquet data, Shapely and H3 support spatial filtering, and Leaflet and CesiumJS render the maps.
+- **Code.** `frontend/` contains the HTML, CSS, JavaScript, and map assets. `backend/` serves the site and JSON archive APIs. DuckDB reads Parquet data, Shapely and H3 support spatial filtering, and Leaflet and CesiumJS render the maps. Three.js renders the home page valley.
+
+### Home page valley
+
+The home page opens on a scroll-driven Three.js flight through a burning forest valley. Everything is generated in code at load time, apart from the forest-floor texture.
+
+| File | What it builds |
+| --- | --- |
+| `frontend/assets/fire-valley.js` | Terrain, forest placement, fire, ground cover, lighting, and the scroll camera. |
+| `frontend/assets/valley-specimens.js` | Branching oak and fir models and their reduced versions for distant trees. |
+| `frontend/assets/valley-finish.js` | Post-processing: fire glow, tone mapping, color grade, vignette, and film grain. |
+
+- **Trees.** Oak leaves are textured cards that each show a spray of lobed leaves, drawn once onto a canvas. Leaf lighting bends toward the outside of the crown, and leaves deep inside the crown are darker, so each canopy shades as one mass. Hand-placed trees switch to their reduced model at 70 units. Background trees use instanced near and far models.
+- **Fire.** Each burned patch has flame clusters along its spreading edge, low smoldering flames inside, glowing ember beds draped over the terrain, and drifting sparks. Flames use additive blending. The fire light glides between patches as the camera moves.
+- **Finish.** The scene renders into a half-float buffer with 4× MSAA. Bright warm pixels bloom, then a final pass applies AgX tone mapping, the grade, vignette, and grain. Browsers without half-float render targets draw the scene directly, without the finish.
+- **Performance.** The renderer lowers its pixel ratio when frames run slow. Add `?hero-fps` to the URL to record the measured frame rate on the canvas as `data-fps`. The scene stays still when the system prefers reduced motion.
+
+`EXPOSURE` and `BLOOM` at the top of `valley-finish.js` control overall brightness and fire glow strength. When you change a scene file, update its `?v=` query string where it is imported (`index.html` for `fire-valley.js`, `fire-valley.js` for the other two) so browsers load the new version.
 
 ### Rebuild selected India datasets
 

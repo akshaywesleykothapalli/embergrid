@@ -109,7 +109,7 @@ body[data-page="home"] .valley-copy h1 {
   color: #141414;
   font: 650 .95rem/1.25 var(--type-body);
 }
-.valley-copy .valley-arrow:hover { background: #ffd2b3; }
+.valley-copy .valley-arrow:hover { background: var(--cream); color: #141414; border-color: var(--cream); }
 .landing-use h2 { font: 650 clamp(1.55rem, 3.8vw, 2.75rem)/1.08 var(--type-display); letter-spacing: -.045em; }
 .landing-use a { display: inline-block; margin-top: .7rem; text-underline-offset: .25em; }
 .rdf-root:where(footer) { font-family: var(--type-body); }
@@ -147,8 +147,9 @@ body[data-page="home"] .valley-copy h1 {
 }
 @media (prefers-reduced-motion: no-preference) {
   .explorer-filter-group { transition: border-color .18s ease; }
-  .valley-copy .valley-arrow { transition: background .2s ease, translate .2s ease; }
-  .valley-copy .valley-arrow:hover { translate: 0 -2px; }
+  .valley-copy .valley-arrow { transition: background .2s ease, color .2s ease, border-color .2s ease; }
+  .valley-copy .valley-arrow svg { transition: translate .2s ease; }
+  .valley-copy .valley-arrow:hover svg { translate: 3px 0; }
 }
 
 /* Keep the full first viewport for the workspace on shorter pages. */
@@ -235,13 +236,18 @@ body[data-page="home"] .valley-copy h1 {
 }
 .valley-copy .valley-arrow {
   display: inline-flex;
-  gap: .65rem;
-  border-radius: 10px;
+  align-items: center;
+  gap: .5rem;
+  border: 1px solid #f5efe259;
+  border-radius: 999px;
   margin-top: 1.5rem;
-  padding: .75rem 1rem;
-  background: #ffb182;
-  color: #21130d;
-  box-shadow: 0 4px 20px #0005;
+  padding: .6rem 1.15rem .6rem 1.35rem;
+  background: #1411100f;
+  backdrop-filter: blur(10px);
+  color: var(--cream);
+  font-weight: 500;
+  font-size: .9rem;
+  letter-spacing: .01em;
 }
 .valley-copy .valley-arrow:focus-visible { outline: 2px solid var(--cream); outline-offset: 4px; }
 .valley-copy .valley-scroll { margin-top: 1rem; text-transform: none; letter-spacing: .025em; }

@@ -1,5 +1,6 @@
 import * as T from "./vendor/three.module.min.js";
 import {createSpecimen, reduceSpecimen} from "./valley-specimens.js?v=13";
+import {createFinish} from "./valley-finish.js?v=2";
 
 const journey = document.querySelector(".valley-journey");
 const hero = journey.querySelector(".fire-valley");
@@ -31,6 +32,11 @@ float noise(vec2 p){
   return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);
 }
 float fbm(vec2 p){return .53*noise(p)+.24*noise(p*2.04)+.14*noise(p*4.17)+.09*noise(p*8.21);}
+`;
+// Custom shaders pick colours as they should appear on screen. Convert them to linear light so they
+// sit correctly in the tone-mapped buffer, then let three.js encode them for whatever target is bound.
+const linear = `
+vec3 toLinear(vec3 c){return mix(c/12.92,pow((c+.055)/1.055,vec3(2.4)),step(.04045,c));}
 `;
 function terrain(scene) {
   const geometry = new T.PlaneGeometry(430, 660, 235, 270).rotateX(-Math.PI / 2).translate(0, 0, -185);
@@ -152,6 +158,7 @@ function daylight(scene) {
       uniform vec3 sun;
       varying vec3 ray;
       ${noise}
+      ${linear}
       void main() {
         vec3 view = normalize(ray);
         float elevation = smoothstep(0., .73, view.y);
@@ -164,7 +171,8 @@ function daylight(scene) {
         vec3 silver = mix(vec3(.72,.77,.81),vec3(1.,.98,.93),smoothstep(.51,.73,cloud));
         sky = mix(sky,silver,cover*.88);
         sky = mix(sky,vec3(1.,.97,.84),smoothstep(.9987,.9996,towardSun));
-        gl_FragColor = vec4(sky,1.);
+        gl_FragColor = vec4(toLinear(sky),1.);
+        #include <colorspace_fragment>
       }`
   }));
   sky.renderOrder = -1;
@@ -323,13 +331,15 @@ function combustion(scene, time, hover, pointer) {
       varying vec3 world;
       varying float depth;
       ${noise}
+      ${linear}
       void main(){
         float edge=length(p)+(noise(world.xz*.9)-.5)*.5;
         float mask=1.-smoothstep(.35,1.,edge);
         float grain=noise(world.xz*3.7);
         float hot=smoothstep(.5,.82,grain)*(.65+.35*sin(time*(2.3+grain*3.)+grain*40.));
         vec3 ember=mix(vec3(.42,.05,0.),vec3(1.,.42,.07),hot);
-        gl_FragColor=vec4(ember,mask*(.32+.68*hot)*exp(-depth*.0038));
+        gl_FragColor=vec4(toLinear(ember),mask*(.32+.68*hot)*exp(-depth*.0038));
+        #include <colorspace_fragment>
       }`
   }));
   coals.renderOrder = 1;
@@ -354,10 +364,12 @@ function combustion(scene, time, hover, pointer) {
       }`,
     fragmentShader: `
       varying float life;
+      ${linear}
       void main(){
         float spot=1.-smoothstep(.15,.5,length(gl_PointCoord-.5));
         float blink=.6+.4*step(.3,fract(life*13.));
-        gl_FragColor=vec4(mix(vec3(1.,.85,.45),vec3(1.,.3,.04),life),spot*(1.-life)*blink);
+        gl_FragColor=vec4(toLinear(mix(vec3(1.,.85,.45),vec3(1.,.3,.04),life)),spot*(1.-life)*blink);
+        #include <colorspace_fragment>
       }`
   }));
   embers.frustumCulled = false;
@@ -400,6 +412,7 @@ function combustion(scene, time, hover, pointer) {
         varying vec2 p;
         varying float phase, depth;
         ${noise}
+        ${linear}
         void main(){
           float y=p.y;
           float distanceFade=exp(-depth*(smoke?.0018:.0038));
@@ -408,7 +421,7 @@ function combustion(scene, time, hover, pointer) {
             float billow=.73*noise(drift)+.27*noise(drift*2.06);
             float mask=1.-smoothstep(.13,.5,abs(p.x-.5)+(billow-.5)*.37);
             float opacity=mask*sin(y*3.14159)*smoothstep(.37,.78,billow)*.18*distanceFade;
-            gl_FragColor=vec4(mix(vec3(.30,.27,.25),vec3(.69,.68,.64),clamp(billow+y*.32,0.,1.)),opacity);
+            gl_FragColor=vec4(toLinear(mix(vec3(.30,.27,.25),vec3(.69,.68,.64),clamp(billow+y*.32,0.,1.))),opacity);
           }else{
             float rise=y*4.7-time*(1.48+fract(phase*.37)*1.48);
             float plume=fbm(vec2(p.x*3.3+phase,rise));
@@ -424,8 +437,9 @@ function combustion(scene, time, hover, pointer) {
             flame=mix(flame,vec3(1.,.73,.18),smoothstep(.39,.76,core));
             flame=mix(flame,vec3(1.,.96,.73),smoothstep(.69,.98,core));
             // Cool edges fade out instead of darkening, so each tongue ends in glow, not a brown rim.
-            gl_FragColor=vec4(flame,alpha*smoothstep(0.,.45,core)*distanceFade*.85);
+            gl_FragColor=vec4(toLinear(flame),alpha*smoothstep(0.,.45,core)*distanceFade*.85);
           }
+          #include <colorspace_fragment>
         }`
     });
     const quad = new T.PlaneGeometry(1, 1, 1, smoke ? 4 : 8);
@@ -440,6 +454,7 @@ function combustion(scene, time, hover, pointer) {
 function start() {
   let renderer;
   try { renderer = new T.WebGLRenderer({canvas, antialias: true}); } catch { return; }
+  const finish = createFinish(renderer);
   const scene = new T.Scene();
   scene.background = new T.Color("#82929b");
   scene.fog = new T.FogExp2("#b0c0c8", .0022);
@@ -492,7 +507,8 @@ function start() {
     else firelight.position.copy(fireTarget);
     firelight.intensity = 380 + 80 * Math.sin(time.value * 9) + 48 * Math.sin(time.value * 17);
     sky.position.copy(camera.position);
-    renderer.render(scene, camera);
+    if (finish) finish(scene, camera, time.value);
+    else renderer.render(scene, camera);
     if (!paused && visible) frame = requestAnimationFrame(draw);
   }
   function refresh() {
