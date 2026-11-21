@@ -1,5 +1,5 @@
 import * as T from "./vendor/three.module.min.js";
-import {createSpecimen, reduceSpecimen} from "./valley-specimens.js?v=12";
+import {createSpecimen, reduceSpecimen} from "./valley-specimens.js?v=13";
 
 const journey = document.querySelector(".valley-journey");
 const hero = journey.querySelector(".fire-valley");
@@ -120,7 +120,7 @@ function forest(scene, time) {
   for (const {kind, x, z, size, turn} of specimens) {
     const tree = new T.LOD();
     tree.addLevel(model(kind).clone(), 0);
-    tree.addLevel(model(kind, "near").clone(), 35, .10);
+    tree.addLevel(model(kind, "near").clone(), 70, .10);
     tree.position.set(x, ground(x,z), z);
     tree.scale.setScalar(size);
     tree.rotation.y = turn;
@@ -237,21 +237,139 @@ function billboards(base, attributes, count) {
 }
 
 function combustion(scene, time, hover, pointer) {
-  for (const smoke of [false, true]) {
-    const anchors = [], settings = [];
-    for (const [cx, cz, rx, rz] of patches) {
-      for (let i = 0; i < (smoke ? 9 : 70); i++) {
-        const angle = random() * Math.PI * 2;
-        const radius = Math.sqrt(random());
-        const x = cx + rx * radius * Math.cos(angle);
-        const z = cz + rz * radius * Math.sin(angle);
-        anchors.push(x, ground(x, z) - .12, z);
-        settings.push(smoke ? 17 + random() * 17 : 1.6 + random() * 4.1,
-          smoke ? 25 + random() * 26 : 2 + random() ** 2 * 10, random() * 81);
+  // The fire keeps its own seed, so the ground cover placed after it stays where it was.
+  let seed = 3517;
+  const roll = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
+  const flames = {anchors: [], settings: []}, plumes = {anchors: [], settings: []};
+  const beds = {position: [], uv: [], index: []}, sparks = {position: [], settings: []};
+  const flame = (x, z, width, height) => {
+    flames.anchors.push(x, ground(x, z) - .12, z);
+    flames.settings.push(width, height, roll() * 81);
+  };
+  function bed(x, z, angle, length, breadth) {
+    // A small grid draped over the terrain, so the glow follows the ground instead of cutting through it.
+    const first = beds.position.length / 3;
+    for (let i = 0; i <= 4; i++) {
+      for (let j = 0; j <= 4; j++) {
+        const u = i / 2 - 1, v = j / 2 - 1;
+        const px = x + Math.cos(angle) * u * length - Math.sin(angle) * v * breadth;
+        const pz = z + Math.sin(angle) * u * length + Math.cos(angle) * v * breadth;
+        beds.position.push(px, ground(px, pz) + .12, pz);
+        beds.uv.push(u, v);
+        if (i && j) {
+          const k = first + i * 5 + j;
+          beds.index.push(k - 6, k - 1, k - 5, k - 1, k, k - 5);
+        }
       }
     }
+  }
+  for (const [cx, cz, rx, rz] of patches) {
+    // Most flames burn in clusters along the edge of the patch, where the fire is still spreading.
+    for (let c = 0; c < 14; c++) {
+      const angle = (c + roll() * .6) / 14 * Math.PI * 2;
+      const edge = .86 + roll() * .16;
+      const x = cx + rx * edge * Math.cos(angle), z = cz + rz * edge * Math.sin(angle);
+      if (trailEdge(x, z) < 1.5) continue;
+      const along = Math.atan2(rz * Math.cos(angle), -rx * Math.sin(angle));
+      bed(x, z, along, 4.2, 2.1);
+      for (let i = 0; i < 5; i++) {
+        const s = (roll() - .5) * 6.4, t = (roll() - .5) * 2.2;
+        const height = 1.2 + roll() ** 2 * 3.8;
+        flame(x + Math.cos(along) * s - Math.sin(along) * t, z + Math.sin(along) * s + Math.cos(along) * t,
+          1.3 + height * .42 + roll() * .6, height);
+      }
+      for (let i = 0; i < 9; i++) {
+        const sx = x + (roll() - .5) * 5, sz = z + (roll() - .5) * 5;
+        sparks.position.push(sx, ground(sx, sz) + .5, sz);
+        sparks.settings.push(.16 + roll() * .22, 5 + roll() * 9, roll());
+      }
+    }
+    // Low flames smoulder across the burnt ground behind the front.
+    for (let i = 0; i < 12; i++) {
+      const angle = roll() * Math.PI * 2, radius = Math.sqrt(roll()) * .75;
+      const x = cx + rx * radius * Math.cos(angle), z = cz + rz * radius * Math.sin(angle);
+      if (trailEdge(x, z) < 1.5) continue;
+      bed(x, z, angle, 1.6, 1.1);
+      flame(x, z, .9 + roll() * .8, .5 + roll() * .9);
+    }
+    for (let i = 0; i < 9; i++) {
+      const angle = roll() * Math.PI * 2, radius = Math.sqrt(roll());
+      const x = cx + rx * radius * Math.cos(angle), z = cz + rz * radius * Math.sin(angle);
+      plumes.anchors.push(x, ground(x, z) - .12, z);
+      plumes.settings.push(17 + roll() * 17, 25 + roll() * 26, roll() * 81);
+    }
+  }
+
+  const glow = new T.BufferGeometry();
+  glow.setAttribute("position", new T.Float32BufferAttribute(beds.position, 3));
+  glow.setAttribute("uv", new T.Float32BufferAttribute(beds.uv, 2));
+  glow.setIndex(beds.index);
+  const coals = new T.Mesh(glow, new T.ShaderMaterial({
+    uniforms: {time}, transparent: true, depthWrite: false, side: T.DoubleSide, blending: T.AdditiveBlending,
+    polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    vertexShader: `
+      varying vec2 p;
+      varying vec3 world;
+      varying float depth;
+      void main(){
+        p=uv; world=position;
+        vec4 view=modelViewMatrix*vec4(position,1.);
+        depth=-view.z;
+        gl_Position=projectionMatrix*view;
+      }`,
+    fragmentShader: `
+      uniform float time;
+      varying vec2 p;
+      varying vec3 world;
+      varying float depth;
+      ${noise}
+      void main(){
+        float edge=length(p)+(noise(world.xz*.9)-.5)*.5;
+        float mask=1.-smoothstep(.35,1.,edge);
+        float grain=noise(world.xz*3.7);
+        float hot=smoothstep(.5,.82,grain)*(.65+.35*sin(time*(2.3+grain*3.)+grain*40.));
+        vec3 ember=mix(vec3(.42,.05,0.),vec3(1.,.42,.07),hot);
+        gl_FragColor=vec4(ember,mask*(.32+.68*hot)*exp(-depth*.0038));
+      }`
+  }));
+  coals.renderOrder = 1;
+
+  const drift = new T.BufferGeometry();
+  drift.setAttribute("position", new T.Float32BufferAttribute(sparks.position, 3));
+  drift.setAttribute("settings", new T.Float32BufferAttribute(sparks.settings, 3));
+  const embers = new T.Points(drift, new T.ShaderMaterial({
+    uniforms: {time}, transparent: true, depthWrite: false, blending: T.AdditiveBlending,
+    vertexShader: `
+      attribute vec3 settings;
+      uniform float time;
+      varying float life;
+      void main(){
+        life=fract(time*settings.x+settings.z);
+        float wind=.62+.21*sin(time*.88-position.z*.066)+.12*sin(time*1.73+position.x*.09);
+        vec3 rise=position+vec3(life*life*wind*7.+sin(life*9.+settings.z*6.)*.6,
+          life*settings.y,cos(life*7.+settings.z*4.)*.6);
+        vec4 view=modelViewMatrix*vec4(rise,1.);
+        gl_PointSize=clamp(46./-view.z,1.,4.)*(1.-life*.6);
+        gl_Position=projectionMatrix*view;
+      }`,
+    fragmentShader: `
+      varying float life;
+      void main(){
+        float spot=1.-smoothstep(.15,.5,length(gl_PointCoord-.5));
+        float blink=.6+.4*step(.3,fract(life*13.));
+        gl_FragColor=vec4(mix(vec3(1.,.85,.45),vec3(1.,.3,.04),life),spot*(1.-life)*blink);
+      }`
+  }));
+  embers.frustumCulled = false;
+  embers.renderOrder = 2;
+  scene.add(coals, embers);
+
+  for (const smoke of [false, true]) {
+    const {anchors, settings} = smoke ? plumes : flames;
     const material = new T.ShaderMaterial({
       uniforms: {time, hover, pointer, smoke: {value: smoke}}, transparent: true, depthWrite: false,
+      // Flames add light rather than painting over the scene, so overlaps glow and need no sorting.
+      blending: smoke ? T.NormalBlending : T.AdditiveBlending,
       vertexShader: `
         attribute vec3 anchor, settings;
         uniform bool smoke;
@@ -266,7 +384,7 @@ function combustion(scene, time, hover, pointer) {
           float pulse=.85+.12*sin(time*(2.1+fract(phase)*2.6)+phase)+.05*sin(time*7.2+phase*1.7);
           float bend=y*y*wind;
           float curl=sin(y*6.8-time*3.3+phase)*y*y;
-          float drift=smoke?bend*19.:settings.y*(bend*.52+curl*.09);
+          float drift=smoke?bend*19.:settings.y*(bend*.30+curl*.07);
           vec3 base=anchor+vec3(drift,y*settings.y*(smoke?1.:pulse),bend*settings.y*.13);
           vec4 view=modelViewMatrix*vec4(base,1.);
           view.x+=position.x*settings.x*(smoke?(.38+y*.98):1.);
@@ -300,12 +418,13 @@ function combustion(scene, time, hover, pointer) {
             float heat=1.-abs(lateral)/mix(.37,.08,pow(y,1.4))-y*.70+
               (curl-.48)*(.55+y*.94)+(eddies-.5)*.29;
             float breakup=mix(1.,smoothstep(.28,.57,curl),smoothstep(.24,.8,y));
-            float alpha=smoothstep(.015,.34,heat)*breakup*smoothstep(0.,.095,y)*(1.-smoothstep(.48,1.,y));
+            float alpha=smoothstep(.015,.34,heat)*breakup*smoothstep(0.,.22,y)*(1.-smoothstep(.48,1.,y));
             float core=clamp(heat*.91-y*.39+(eddies-.5)*.24,0.,1.);
             vec3 flame=mix(vec3(.55,.046,.005),vec3(1.,.29,.025),smoothstep(.025,.48,core));
             flame=mix(flame,vec3(1.,.73,.18),smoothstep(.39,.76,core));
             flame=mix(flame,vec3(1.,.96,.73),smoothstep(.69,.98,core));
-            gl_FragColor=vec4(flame,alpha*distanceFade*.9);
+            // Cool edges fade out instead of darkening, so each tongue ends in glow, not a brown rim.
+            gl_FragColor=vec4(flame,alpha*smoothstep(0.,.45,core)*distanceFade*.85);
           }
         }`
     });
@@ -332,6 +451,7 @@ function start() {
   groundCover(scene);
   const firelight = new T.PointLight("#ff812d", 420, 54, 1.65);
   scene.add(firelight);
+  const fireTarget = new T.Vector3();
   const camera = new T.PerspectiveCamera(58, 1, .3, 600);
   const aim = new T.Vector3(); const mouse = new T.Vector2(4, 4);
   let previous = 0, frame = 0, progress = 0, paused = preference.matches, visible = true, holding = false;
@@ -366,7 +486,10 @@ function start() {
     path.getPointAt(position, camera.position); path.getPointAt(position + .065, aim); aim.y -= 3; camera.lookAt(aim);
     const [x, z] = patches.reduce((best, patch) =>
       Math.abs(patch[1] - camera.position.z) < Math.abs(best[1] - camera.position.z) ? patch : best);
-    firelight.position.set(x, ground(x, z) + 5, z);
+    // Glide toward the nearest patch instead of jumping, so lit foliage doesn't flick on and off.
+    fireTarget.set(x, ground(x, z) + 5, z);
+    if (delta) firelight.position.lerp(fireTarget, 1 - Math.exp(-delta * 1.2));
+    else firelight.position.copy(fireTarget);
     firelight.intensity = 380 + 80 * Math.sin(time.value * 9) + 48 * Math.sin(time.value * 17);
     sky.position.copy(camera.position);
     renderer.render(scene, camera);
