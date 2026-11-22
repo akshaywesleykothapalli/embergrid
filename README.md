@@ -1,94 +1,311 @@
-# Embergrid
 
-Embergrid is an interactive archive of satellite fire detections. It lets you explore where MODIS and VIIRS detected hotspots and compare the same month across years. The project was built for the [2026 NASA Space Apps MODIS and VIIRS Hot Spots challenge](https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/).
+<div align="center">
 
-[Open Embergrid](https://embergrid.onrender.com/) · [About the project](https://embergrid.onrender.com/about)
+# EMBERGRID
 
-## Explore the archive
+### Fire activity from orbit, explored across space and time.
 
-| View | What you can do |
-| --- | --- |
-| [World Explorer](https://embergrid.onrender.com/global) | Explore a 3D globe, compare monthly totals across countries and subdivisions, and inspect archived hotspots in a local map. Export monthly totals or the points currently displayed. |
-| [India Explorer](https://embergrid.onrender.com/explore) | Filter the 2012–2025 NASA FIRMS archive by area, month, and sensor. Compare state and district totals, inspect individual detections, and export a CSV. |
-| [Fire Calendar](https://embergrid.onrender.com/calendar) | Compare monthly fire activity for 735 Indian districts using observations and labeled historical estimates from the 2003–2025 archive. |
-| [Sangrur Study](https://embergrid.onrender.com/sangrur) | Inspect weekly or monthly detections in the Punjab study area, view MODIS and VIIRS overlap, and see rainfall and cloud imagery for selected periods. |
+An interactive satellite fire-activity archive for exploring **where thermal anomalies were detected**, **how patterns change across seasons**, and **how MODIS and VIIRS records can be compared responsibly**.
+
+**[Launch EmberGrid](https://embergrid.onrender.com/)** · **[Explore the World](https://embergrid.onrender.com/global)** · **[India Fire Calendar](https://embergrid.onrender.com/calendar)** · **[Project & Methods](https://embergrid.onrender.com/about)**
+
+![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?logo=javascript&logoColor=black)
+![Docker](https://img.shields.io/badge/Deployment-Docker-2496ED?logo=docker&logoColor=white)
+![NASA FIRMS](https://img.shields.io/badge/Data-NASA%20FIRMS-364A63)
+
+*Built for the [NASA Space Apps Challenge 2026 — MODIS and VIIRS Hot Spots](https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/).*
+
+</div>
+
+---
+
+## Overview
+
+**EmberGrid turns archived satellite hotspot observations into an explorable geographic and historical record.**
+
+Instead of showing isolated detections, it lets users move between a global view, Indian states and districts, seasonal comparisons, and a focused study of Sangrur, Punjab.
+
+MODIS and VIIRS do not observe the Earth in identical ways: their spatial resolution, sensitivity, and observation schedules differ. EmberGrid makes those differences explicit, and the India Fire Calendar uses a validated district-level adjustment to connect parts of the historical record without presenting estimates as observations.
+
+> **Interpretation matters:** A satellite hotspot is a detected *thermal anomaly*. It is **not** automatically a unique fire, its cause, its burned area, or proof that an area was observed continuously. EmberGrid is an exploration and research tool, not a live wildfire warning or emergency-response system.
+
+## Explore the application
+
+| Experience | What it provides |
+| :-- | :-- |
+| **[World Explorer](https://embergrid.onrender.com/global)** | Interactive 3D globe; monthly hotspot summaries across countries and subdivisions; local map inspection; exports of monthly totals and displayed detections. |
+| **[India Explorer](https://embergrid.onrender.com/explore)** | Search and filter the **2012–2025 NASA FIRMS archive** by state, district, month, and sensor; compare totals; inspect detection points and export CSVs. |
+| **[Fire Calendar](https://embergrid.onrender.com/calendar)** | Compare the same month across years in **735 Indian districts**, using observed VIIRS values and clearly labeled historical MODIS-based estimates from the **2003–2025** calendar record. |
+| **[Sangrur Study](https://embergrid.onrender.com/sangrur)** | Explore weekly and monthly activity in a Punjab study area; examine MODIS/VIIRS overlap with rainfall estimates and historical cloud imagery. |
+
+### Archive at a glance
+
+| Coverage | Scope |
+| :-- | :-- |
+| India satellite-detection archive | **6.69 million** detections reported by the public application |
+| India detection timeline | **January 2012 – December 2025** (168 months) |
+| Indian administrative coverage | **36** states and union territories; **735** districts in the Fire Calendar |
+| Extended district calendar | **2003–2025**, including labeled estimates where validation criteria are met |
+
+The original India detection archive and the extended Fire Calendar do **not** represent identical observation series. Values for some earlier years are model-based adjustments and are labeled accordingly.
 
 ## How the India Fire Calendar works
 
-1. **Count occupied cells.** Assign detections to districts and count each grid cell with at least one detection once per district, sensor, and month.
-2. **Compare calibration methods.** Use years when both sensors operated to compare raw MODIS with overall and seasonal adjustments. Choose the method with the lowest mean absolute error in the development years.
-3. **Validate historical estimates.** Show earlier MODIS-based estimates where there are at least 12 paired nonzero training months and the selected adjustment beats raw MODIS in 2023. The calendar shows observed VIIRS from February 2012 onward. January 2012 has partial Suomi NPP VIIRS coverage.
+1. **Measure occupied cells.** Assign NASA FIRMS detections to Indian districts, then count a spatial grid cell only once per district, sensor, and month if that cell contains one or more detections. This is a cell-occupancy measure, not a count of individual fires.
 
-On the held-out 2024–2025 benchmark across 735 districts, mean absolute error fell from **17.22 to 10.92 occupied cells** overall, about 37%. In district-months at or below the district’s typical activity, error increased from 1.17 to 1.44. The Fire Calendar includes the benchmark by season and activity level and supports district-level export.
+2. **Evaluate sensor adjustments.** During overlapping MODIS/VIIRS years, compare unadjusted MODIS values with overall and seasonal adjustment methods. Select methods based on mean absolute error in the development period.
 
-The World Explorer uses Fire Harmony’s published NOAA-20 VIIRS scale for monthly totals. India views group dates in India Standard Time. The World Explorer uses UTC. Hotspots represent recorded thermal anomalies. Estimating fire counts, burned area, cause, or usable observation coverage requires additional evidence.
+3. **Gate historical estimates.** Show earlier MODIS-based estimates only for districts with at least **12 paired, nonzero training months** and an adjustment that outperformed raw MODIS in **2023**. Observed VIIRS appears from **February 2012** onward; **January 2012** has partial Suomi NPP VIIRS coverage.
+
+4. **Report holdout results.** Evaluate the selected approach on **2024–2025** data, including subgroup results that reveal where the adjustments do not help.
+
+### Reported validation results
+
+| 2024–2025 benchmark across 735 districts | Raw MODIS MAE | Adjusted MAE | Interpretation |
+| :-- | --: | --: | :-- |
+| All evaluated district-months | 17.22 | **10.92** | Approximately **37% lower** mean absolute error in occupied cells. |
+| District-months at or below typical activity | **1.17** | 1.44 | The adjustment **increased** error for this lower-activity subgroup. |
+
+These are **project-reported evaluation results**, not a claim of uniformly improved accuracy. The calendar also exposes comparisons by season and activity level and supports district-level export.
+
+**Different global and India measurements:** The World Explorer uses monthly summaries on the published [Fire Harmony](https://huggingface.co/datasets/warrensaw530/fire-harmony) **NOAA-20 VIIRS scale**. The India calendar uses its own district-level occupied-cell method. India views group dates in **India Standard Time (IST)**; the World Explorer uses **UTC**.
+
+## Technology and architecture
+
+| Layer | Technologies | Responsibility |
+| :-- | :-- | :-- |
+| Web interface | HTML, CSS, vanilla JavaScript | Navigation, filters, charts, and archival exploration |
+| 3D experience | Three.js, CesiumJS | Scroll-driven forest-valley hero and interactive world globe |
+| Mapping | Leaflet | Geographic hotspot inspection and mapping |
+| Application server | Python 3.13 | Serves the site and JSON archive endpoints |
+| Data processing | DuckDB, Parquet, NumPy, Shapely, H3 | Archive queries and geospatial operations |
+| Deployment | Docker, Render | Single-container hosted web service |
+
+```text
+Browser
+├── Three.js animated forest-valley home page
+├── CesiumJS World Explorer
+├── Leaflet geographic maps
+└── HTML / CSS / JavaScript exploration views
+               │
+               │ HTTP / JSON
+               ▼
+       Python backend/server.py
+          ├── Bundled India data
+          └── DuckDB / Parquet queries
+                   ├── Local Fire Harmony archive (optional)
+                   └── Published archive over HTTPS
+```
+
+### Repository layout
+
+```text
+embergrid/
+├── backend/
+│   ├── server.py
+│   ├── prepare.py
+│   ├── index_districts.py
+│   ├── requirements-global.txt
+│   └── data/
+├── frontend/
+│   ├── index.html
+│   ├── global.html
+│   ├── explorer.html
+│   ├── calendar.html
+│   ├── sangrur.html
+│   └── assets/
+├── Dockerfile
+├── Start Embergrid.command
+└── README.md
+```
 
 ## Run locally
 
-For the full app with the hosted data configuration, build and run the Docker image from the repository root.
+### Option 1 — Docker (recommended)
 
-```sh
+**Prerequisite:** Docker installed and running.
+
+```bash
+git clone https://github.com/akshaywesleykothapalli/embergrid.git
+cd embergrid
 docker build -t embergrid .
 docker run --rm -p 127.0.0.1:8765:8765 embergrid
 ```
 
-Open [localhost:8765](http://localhost:8765/). The image includes India data, world boundaries, and Fire Harmony monthly summaries. It reads individual world hotspot partitions from the published archive over HTTPS.
+Open **http://localhost:8765/**.
 
-For local development without Docker, run `python3 backend/server.py` from the repository root or double-click **Start Embergrid.command** on macOS. The launcher uses `.venv/bin/python` when available. The India tools use the bundled data. To run World Explorer with a local Fire Harmony archive, install the data readers with Python 3.13 and point the server at the directory containing `area_monthly.parquet`, `areas.json`, and `hotspots/`.
+The image includes India data, world boundaries, and Fire Harmony monthly summaries.
 
-```sh
+It fetches individual global hotspot partitions from the published archive over HTTPS, so some global queries require internet access. Online basemaps also need an internet connection; the 3D globe needs WebGL support.
+
+### Option 2 — Python (development)
+
+From the repository root, the bundled India tools can be served with:
+
+```bash
+python3 backend/server.py
+```
+
+On macOS, you can also double-click **`Start Embergrid.command`**, which uses `.venv/bin/python` when available.
+
+For the World Explorer with local data-reader dependencies, use **Python 3.13**:
+
+```bash
 python3.13 -m venv .venv
 .venv/bin/python -m pip install -r backend/requirements-global.txt
 EMBERGRID_GLOBAL_ARCHIVE=/path/to/fire-harmony-v1 .venv/bin/python backend/server.py
 ```
 
-On macOS, the default local archive path is `/Volumes/EMBERGRID/embergrid-data/fire-harmony-v1`. Use `--port` to select another port. Online basemaps require internet access, and the 3D globe requires WebGL.
+Point `EMBERGRID_GLOBAL_ARCHIVE` to the directory containing:
 
-## Deploy
+- `area_monthly.parquet`
+- `areas.json`
+- `hotspots/`
 
-The public app runs as one Docker web service on Render. The root Dockerfile starts the Python server on `0.0.0.0` using the host’s `PORT` value. Configure `/api/health` as the health check and put the service behind HTTPS. A free Render instance may take about a minute to wake up after inactivity. [Render free web services](https://render.com/docs/free#spinning-down-on-idle)
+On macOS, the application's default local archive path is `/Volumes/EMBERGRID/embergrid-data/fire-harmony-v1`.
 
-For a host with a complete local Fire Harmony archive, mount its parent read-only at `/data` and make the archive readable by UID 10001. The Docker image defaults to `/data/fire-harmony-v1`. Set `EMBERGRID_GLOBAL_ARCHIVE` if you mount it elsewhere.
+Use `--port` to change the server port.
 
-Useful checks after deploy include `/about`, `/api/health`, `/api/calendar/district/0`, and `/api/global/series?area=WORLD`. To verify individual world hotspot data, request `/api/global/points?area=LKA&year=2025&month=10`.
+## Deployment and smoke checks
 
-## Data and implementation
+The public deployment runs as **one Docker web service on Render**.
 
-- **Fire detections.** NASA FIRMS historical MODIS and VIIRS standard-processing records. The India database covers 36 states and union territories. State-assigned detections without a district match are reported separately. [NASA FIRMS](https://www.earthdata.nasa.gov/data/tools/firms) · [Historical downloads](https://firms.modaps.eosdis.nasa.gov/download/)
-- **Global archive.** Warren Saw’s Fire Harmony v1.0 data, licensed under CC BY 4.0 and derived from NASA FIRMS. The World Explorer displays up to 8,000 hotspot points per query and reports the matched count and any missing partitions. [Fire Harmony dataset](https://huggingface.co/datasets/warrensaw530/fire-harmony)
-- **Boundaries and imagery.** Natural Earth and geoBoundaries provide administrative boundaries. The maps use Esri World Imagery and NASA GIBS for geographic context. The Sangrur study uses NASA POWER rainfall estimates and 2023 cloud-fraction imagery for visual review. [Natural Earth](https://www.naturalearthdata.com/) · [geoBoundaries](https://www.geoboundaries.org/) · [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) · [NASA GIBS](https://www.earthdata.nasa.gov/data/tools/gibs) · [NASA POWER](https://power.larc.nasa.gov/docs/services/api/temporal/daily/)
-- **Code.** `frontend/` contains the HTML, CSS, JavaScript, and map assets. `backend/` serves the site and JSON archive APIs. DuckDB reads Parquet data, Shapely and H3 support spatial filtering, and Leaflet and CesiumJS render the maps. Three.js renders the home page valley.
+The root `Dockerfile` uses Python 3.13, runs as the non-root user **UID 10001**, and starts `backend/server.py` on `0.0.0.0`, reading the hosting platform's `PORT` variable.
 
-### Home page valley
+Configure **`/api/health`** as the health-check path and serve the site over HTTPS.
 
-The home page opens on a scroll-driven Three.js flight through a burning forest valley. Everything is generated in code at load time, apart from the forest-floor texture.
+Free-tier services may incur cold-start delays after inactivity.
 
-| File | What it builds |
-| --- | --- |
-| `frontend/assets/fire-valley.js` | Terrain, forest placement, fire, ground cover, lighting, and the scroll camera. |
-| `frontend/assets/valley-specimens.js` | Branching oak and fir models and their reduced versions for distant trees. |
-| `frontend/assets/valley-finish.js` | Post-processing: fire glow, tone mapping, color grade, vignette, and film grain. |
+For a host with the full Fire Harmony archive, mount the archive's parent directory read-only at `/data`, make it readable by UID 10001, and use the default `/data/fire-harmony-v1` location or override `EMBERGRID_GLOBAL_ARCHIVE`.
 
-- **Trees.** Oak leaves are textured cards that each show a spray of lobed leaves, drawn once onto a canvas. Leaf lighting bends toward the outside of the crown, and leaves deep inside the crown are darker, so each canopy shades as one mass. Hand-placed trees switch to their reduced model at 70 units. Background trees use instanced near and far models.
-- **Fire.** Each burned patch has flame clusters along its spreading edge, low smoldering flames inside, glowing ember beds draped over the terrain, and drifting sparks. Flames use additive blending. The fire light glides between patches as the camera moves.
-- **Finish.** The scene renders into a half-float buffer with 4× MSAA. Bright warm pixels bloom, then a final pass applies AgX tone mapping, the grade, vignette, and grain. Browsers without half-float render targets draw the scene directly, without the finish.
-- **Performance.** The renderer lowers its pixel ratio when frames run slow. Add `?hero-fps` to the URL to record the measured frame rate on the canvas as `data-fps`. The scene stays still when the system prefers reduced motion.
+### API smoke checks
 
-`EXPOSURE` and `BLOOM` at the top of `valley-finish.js` control overall brightness and fire glow strength. When you change a scene file, update its `?v=` query string where it is imported (`index.html` for `fire-valley.js`, `fire-valley.js` for the other two) so browsers load the new version.
+After starting or deploying the service:
 
-### Rebuild selected India datasets
+```text
+/
+/about
+/api/health
+/api/calendar/district/0
+/api/global/series?area=WORLD
+/api/global/points?area=LKA&year=2025&month=10
+```
 
-Rebuild the Sangrur dataset from complete NASA FIRMS CSV exports for Aqua MODIS and Suomi NPP VIIRS. The importer writes `backend/data/data.js`.
+These are **suggested checks**, not a claim that an automated test suite has passed.
 
-```sh
+## The animated forest valley
+
+The homepage features a **scroll-driven Three.js camera journey through a burning forest valley**.
+
+The scene is procedural at load time apart from its forest-floor texture.
+
+| Module | Responsibility |
+| :-- | :-- |
+| `frontend/assets/fire-valley.js` | Terrain, forest placement, fire, ground cover, scene lighting, and scroll-camera behavior. |
+| `frontend/assets/valley-specimens.js` | Branching oak/fir models and simplified distant-tree variants. |
+| `frontend/assets/valley-finish.js` | Bloom, tone mapping, color grading, vignette, and grain. |
+
+### Vegetation
+
+Oak leaf sprays use canvas-generated textured cards.
+
+Crown lighting and distant model variants reduce unnecessary visual complexity.
+
+Hand-placed trees switch to reduced detail at 70 scene units, while background trees use instanced near/far variants.
+
+### Fire effects
+
+Flame clusters, smoldering patches, ember beds, and drifting sparks build the visible burn areas.
+
+Additive blending and camera-responsive lighting contribute to the fire appearance.
+
+### Rendering
+
+Where supported, the scene uses a half-float, 4×-MSAA render target, warm-pixel bloom, and an AgX-tonemapped finishing pass.
+
+Browsers without half-float target support use a simpler direct-render fallback.
+
+### Accessibility and performance
+
+The renderer adapts pixel ratio when frame rates drop and respects `prefers-reduced-motion`.
+
+Add **`?hero-fps`** to the homepage URL to record measured frame rate on the canvas as `data-fps`.
+
+For visual tuning, edit `EXPOSURE` and `BLOOM` in `valley-finish.js`.
+
+After changing scene modules, update their `?v=` cache-busting query strings in the importing files.
+
+## Rebuilding selected India datasets
+
+To reconstruct the Sangrur dataset from complete NASA FIRMS Aqua MODIS and Suomi NPP VIIRS CSV exports:
+
+```bash
 python3 backend/prepare.py \
   --modis /path/to/modis_*.csv \
   --viirs /path/to/viirs-snpp_*.csv \
   --years 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025
 ```
 
-To rebuild `backend/data/district-cells.json`, run `.venv/bin/python backend/index_districts.py /path/to/archives` with the original geoBoundaries ADM2 file named `districts.json` alongside the 2003–2011 India MODIS CSVs. The script uses the bundled India Explorer data for the overlapping sensor years.
+This writes **`backend/data/data.js`**.
 
-## Built by
+To rebuild **`backend/data/district-cells.json`**, run:
 
-Akshay Wesley Kothapalli · [GitHub](https://github.com/akshaywesleykothapalli) · [LinkedIn](https://linkedin.com/in/akshay-wesley-kothapalli-966738378) · [Portfolio](https://akshaywesleykothapalli.github.io/akshaywesley-portfolio/)
+```bash
+.venv/bin/python backend/index_districts.py /path/to/archives
+```
+
+Provide the original **geoBoundaries ADM2** file named `districts.json` alongside the **2003–2011 India MODIS CSVs**.
+
+The script uses bundled India Explorer data for overlapping sensor years.
+
+## Data sources and attribution
+
+| Source | How EmberGrid uses it |
+| :-- | :-- |
+| [NASA FIRMS](https://www.earthdata.nasa.gov/data/tools/firms) / [historical downloads](https://firms.modaps.eosdis.nasa.gov/download/) | Historical MODIS/VIIRS thermal-anomaly detections for India; includes detections assigned to a state without an ADM2 district match, reported separately. |
+| [Fire Harmony v1.0](https://huggingface.co/datasets/warrensaw530/fire-harmony) (Warren Saw) | Global monthly summaries and hotspot partitions derived from NASA FIRMS; dataset published under **CC BY 4.0**. |
+| [Natural Earth](https://www.naturalearthdata.com/) and [geoBoundaries](https://www.geoboundaries.org/) | Country and administrative boundaries. |
+| [Esri World Imagery](https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9) and [NASA GIBS](https://www.earthdata.nasa.gov/data/tools/gibs) | Map imagery and geographic context. |
+| [NASA POWER](https://power.larc.nasa.gov/docs/services/api/temporal/daily/) | Rainfall estimates for the Sangrur study; 2023 cloud-fraction imagery is also used for historical visual review. |
+
+The World Explorer limits displayed hotspot points to **8,000 per query** and reports matched counts and missing partitions.
+
+Individual data providers retain their own terms, licensing, and attribution requirements.
+
+## Known limitations
+
+- **Thermal anomalies are not verified individual fires.** Distinct detections can arise from the same event; absence of detections does not prove absence of fire.
+- **Sensor harmonization is approximate.** MODIS and VIIRS observe different characteristics, and calibration can make some subsets worse even when aggregate error improves.
+- **Time grouping differs between tools.** India uses IST, while global views use UTC; month boundaries can differ.
+- **Archive coverage is not real-time monitoring.** The historical period and any missing source partitions limit the comparisons that can be drawn.
+- **Data and visualization availability vary.** Some external map tiles and global partitions require network access, while advanced 3D visualization requires a compatible browser/GPU.
+
+## Contributing
+
+Suggestions, data-quality reports, reproducible bug reports, and focused pull requests are welcome through [GitHub Issues](https://github.com/akshaywesleykothapalli/embergrid/issues).
+
+When proposing a numerical or scientific change, include:
+
+- Data source
+- Date range
+- District or region
+- Reproduction steps
+
+**Source-code license:** This repository does not currently include a project-level `LICENSE` file. Public visibility on GitHub does not itself grant reuse rights; third-party datasets and map services have separate licensing terms.
+
+## Creator
+
+**Akshay Wesley Kothapalli**
+
+[GitHub](https://github.com/akshaywesleykothapalli) · [LinkedIn](https://linkedin.com/in/akshay-wesley-kothapalli-966738378) · [Portfolio](https://akshaywesleykothapalli.github.io/akshaywesley-portfolio/)
+
+---
+
+<div align="center">
+
+*Explore the observations. Compare the seasons. Keep the limitations visible.*
+
+**[Open EmberGrid](https://embergrid.onrender.com/)**
+
+</div>
