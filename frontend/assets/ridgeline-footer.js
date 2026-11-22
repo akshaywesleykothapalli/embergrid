@@ -146,7 +146,7 @@ export function mountRidgelineFooter(host) {
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   const palette = colors.map(color => rdfPack(rdfHex(color)));
   let image, pixels, ridges, mist, fogWidth, width, height, margin, pixel;
-  let visible = false, start, frame = 0, lastDraw = 0;
+  let visible = false, start, frame = 0, lastDraw = 0, pointer = null, gust = 0;
   const layers = 6;
 
   function resize() {
@@ -169,7 +169,8 @@ export function mountRidgelineFooter(host) {
     if (!image) return;
     const still = motion.matches;
     const age = still ? 5000 : now - (start ?? now - 5000);
-    const drift = still ? 0 : now * .000035;
+    const drift = still ? 0 : now * .000035 + gust;
+    gust *= .94;
     for (let i = 0; i < mist.length; i++) {
       const x = i % fogWidth;
       const y = Math.floor(i / fogWidth);
@@ -177,7 +178,8 @@ export function mountRidgelineFooter(host) {
         y * 10 / height, 31, 2));
     }
     const reveals = ridges.map((_, i) => rdfEase((age - i * 125) / 1250));
-    const crestAt = (i, x) => ridges[i][x + margin] +
+    const shift = pointer && !still ? (pointer.x / width * 2 - 1) * (margin - 3) : 0;
+    const crestAt = (i, x) => ridges[i][x + margin + Math.round(shift * (.2 + .8*i/(layers-1)))] +
       (1 - reveals[i]) * height * .08;
     for (let x = 0; x < width; x++) {
       const tops = ridges.map((_, i) => crestAt(i, x));
@@ -186,9 +188,10 @@ export function mountRidgelineFooter(host) {
         while (layer >= 0 && y < tops[layer]) layer--;
         const depth = layer / (layers - 1);
         const fog = mist[Math.floor(y / 3)*fogWidth + Math.floor(x / 3)];
+        const opening = pointer && !still ? Math.exp(-((x-pointer.x)**2 + (y-pointer.y)**2) / (48**2)) : 0;
         const rim = layer < 0 ? 0 : 1-.68*rdfSmooth(0, height*(.16+.39*depth), y-tops[layer]);
         const tone = layer < 0 ? .025 * fog : (.19 + .80*depth) * rim * reveals[layer] *
-          (1 - .55*fog) + .035*fog;
+          (1 - .55*fog*(1-opening)) + .035*fog;
         pixels[y*width+x] = palette[rdfDither(tone*rdfSmooth(0,height*.36,y), palette.length,
           RDF_BAYER[(y&7)*8+(x&7)])];
       }
@@ -217,4 +220,10 @@ export function mountRidgelineFooter(host) {
     }
   }).observe(root);
   motion.addEventListener("change", wake);
+  scene.addEventListener("pointermove", event => {
+    const rect = scene.getBoundingClientRect();
+    pointer = {x: (event.clientX - rect.left) / pixel, y: (event.clientY - rect.top) / pixel};
+  });
+  scene.addEventListener("pointerleave", () => { pointer = null; });
+  scene.addEventListener("click", () => { if (pointer) gust += pointer.x < width / 2 ? 1.2 : -1.2; });
 }

@@ -1,4 +1,4 @@
-import {mountRidgelineFooter} from "./ridgeline-footer.js?v=5";
+import {mountRidgelineFooter} from "./ridgeline-footer.js?v=6";
 
 const page = document.body.dataset.page;
 const links = [

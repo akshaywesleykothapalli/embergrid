@@ -1,0 +1,45 @@
+html { scroll-padding-top: 7rem; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  :is(.guide-grid, .guide-context, .about-shell, .faq-intro) a {
+    transition: color .18s ease, border-color .18s ease, background-color .18s ease;
+  }
+  :is(.guide-grid, .guide-context, .about-shell, .faq-intro) a [aria-hidden="true"] {
+    transition: transform .2s ease;
+  }
+  :is(.guide-grid, .guide-context, .about-shell, .faq-intro) a:hover [aria-hidden="true"] {
+    transform: translate(2px, -2px);
+  }
+}
+:is(.home-faq, .archive-guide, .about-shell) a:focus-visible,
+.faq-list summary:focus-visible { outline: 2px solid var(--ember); outline-offset: 5px; border-radius: 3px; }
+.text-link { display: inline-flex; align-items: center; gap: .6rem; min-height: 44px; color: var(--cream); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: .3em; }
+.text-link:hover { color: var(--ember); text-decoration-color: currentColor; }
+.home-faq { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: clamp(2rem, 7vw, 7rem); padding-block: clamp(2rem, 5vw, 4rem) clamp(4rem, 8vw, 7rem); }
+.faq-intro .eyebrow { color: var(--ember); margin-bottom: .7rem; }
+.faq-intro h2 { max-width: 12ch; font: 650 clamp(2rem, 4vw, 3.25rem)/1.1 var(--type-display); letter-spacing: -.04em; margin-bottom: 1rem; }
+.faq-intro > p:not(.eyebrow) { max-width: 34ch; line-height: 1.7; }
+.faq-intro .text-link { margin-top: 1rem; font-size: .9rem; }
+.faq-list { border-top: 1px solid var(--line); min-width: 0; }
+.faq-list details { border-bottom: 1px solid var(--line); }
+.faq-list summary { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.4rem .1rem; list-style: none; color: var(--cream); font-weight: 550; line-height: 1.45; }
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary::after { content: "+"; flex-shrink: 0; color: var(--ember); font: 400 1.5rem/1 var(--type-body); }
+.faq-list details[open] summary::after { content: "−"; }
+.faq-list summary:hover { color: var(--ember); }
+.faq-answer { padding: 0 2rem 1.4rem .1rem; }
+.faq-answer p { margin: 0; line-height: 1.8; font-size: .94rem; }
+.faq-answer a { color: var(--cream); text-underline-offset: .23em; text-decoration-color: var(--ember); }
+.faq-answer a:hover { color: var(--ember); }
+@supports (interpolate-size: allow-keywords) {
+  @media (prefers-reduced-motion: no-preference) {
+    .faq-list details { interpolate-size: allow-keywords; }
+    .faq-list details::details-content { height: 0; overflow: clip; transition: height .28s ease, content-visibility .28s allow-discrete; }
+    .faq-list details[open]::details-content { height: auto; }
+  }
+}
+@media (max-width: 730px) {
+  .home-faq { grid-template-columns: 1fr; gap: 1.5rem; }
+  .faq-intro h2 { max-width: none; }
+  .faq-answer { padding-right: .5rem; }
+}
